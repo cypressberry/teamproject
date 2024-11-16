@@ -1,5 +1,6 @@
 // Wait for FFmpeg to load and create an instance
-const { createFFmpeg, fetchFile } = FFmpeg; // Make sure FFmpeg is available
+// Make sure FFmpeg is available
+import {createFFmpeg, fetchFile} from '@ffmpeg/ffmpeg';
 const ffmpeg = createFFmpeg({ log: true });
 
 // Wait for FFmpeg.js to load before proceeding
