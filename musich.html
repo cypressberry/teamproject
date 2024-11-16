@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FFmpeg MP3 to Audio Player</title>
+</head>
+<body>
+  <h1>Upload an MP3 File</h1>
+
+  <!-- File Input -->
+  <input type="file" id="fileInput" accept=".mp3">
+  
+  <!-- Audio Player -->
+  <div id="audioPlayerContainer" style="display: none;">
+    <audio id="audioPlayer" controls></audio>
+  </div>
+
+  <!-- Load FFmpeg.js from CDN first -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@latest"></script>
+
+  <!-- Link to the External JavaScript File -->
+  <script src="music.js"></script>
+  
+
+</body>
+</html>
