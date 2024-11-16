@@ -9,32 +9,66 @@
 /* PAGE HEADING */
 .main-heading {
   font-family: "Pixelify Sans", sans-serif;
+  color: white;
+  letter-spacing: 3px;
   font-optical-sizing: auto;
   font-weight: 500px;
+  font-size: 50px;
   font-style: normal;
   text-align: center;
+
 }
 
 /* FILE UPLOAD AND DOWNLOAD SECTION*/
 #files_div {
-    justify-content: center;
-    display: flex;
+    display: flex; /* Use Flexbox for layout */
+    justify-content: center; /* Distribute space between items */
+    align-items: flex-start; /* Center items vertically */
+    margin-top: 20px; /* Remove any default margins */
+    gap: 200px;
 }
+#file-wrapper {
+    text-align: center;
+    margin: 0 20px;
+}
+
 #upload_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
     padding-top: 0px;
+    padding-left: 20px;
+    margin-top:0;
 }
+#download_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+    padding-left: 7.5px;
+    margin-top:0;
+}
+
 #upload_img {
-    width: 80px;
+    max-width: 100px; /* Control image size */
+    margin-bottom: 5px; /* Add space between image and text */
 }
 #download_img {
-    width: 80px;
+    max-width: 100px; /* Control image size */
+    margin-bottom: 5px; /* Add space between image and text */
 }
 
 /* CD IMAGE SECTION */
-#cd_img {
-    padding-top: 50px;
+#cd_div {
+    display: flex;
     justify-content: center;
-    text-align: center;
+    align-items: center;
+    margin-top: 30px;
+    box-sizing: border-box;
+}
+#cd_img {
+    max-width: 300px;
+    height: auto;
+
 }
 
 /* SLIDERS FOR REVERB AND SPEED */
@@ -42,7 +76,17 @@
 #reverb_slider {
 
 }
+#reverb_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+}
 
 #speed_slider {
-    
+
+}
+#speed_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
 }
