@@ -1,0 +1,38 @@
+#main-heading {
+    font-family:'Pixelify Sans'
+}
+
+/* // <uniquifier>: Use a unique and descriptive class name
+// <weight>: Use a value from 400 to 700 */
+
+
+/* PAGE HEADING */
+.main-heading {
+  font-family: "Pixelify Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 500px;
+  font-style: normal;
+  text-align: center;
+}
+
+/* FILE UPLOAD AND DOWNLOAD SECTION*/
+#files_div {
+    justify-content: center;
+    display: flex;
+}
+#upload_text {
+    padding-top: 0px;
+}
+#upload_img {
+    width: 80px;
+}
+#download_img {
+    width: 80px;
+}
+
+/* CD IMAGE SECTION */
+#cd_img {
+    padding-top: 50px;
+    justify-content: center;
+    text-align: center;
+}
