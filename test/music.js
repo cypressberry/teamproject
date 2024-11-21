@@ -1,51 +1,63 @@
-// Import FFmpeg.js functions
-import { createFFmpeg, fetchFile } from 'https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@latest';
+document.addEventListener('DOMContentLoaded', () => {
+  const { createFFmpeg, fetchFile } = FFmpeg;
+  const ffmpeg = createFFmpeg({ log: true });
 
+  document.getElementById('fileInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-// Initialize FFmpeg instance
-const ffmpeg = createFFmpeg({ log: true });
+      const editorDiv = document.getElementById('editor');
+      editorDiv.style.display = 'block';
 
-// Wait for FFmpeg.js to load before proceeding
-(async () => {
-  await ffmpeg.load();
-  console.log('FFmpeg is ready!');
-})();
+      document.getElementById('applyEdits').onclick = async () => {
+          try {
+              // Load FFmpeg if not loaded
+              if (!ffmpeg.isLoaded()) {
+                  console.log("Loading FFmpeg...");
+                  await ffmpeg.load();
+                  console.log("FFmpeg loaded successfully.");
+              }
 
-// File Input Event Listener
-document.getElementById('fileInput').addEventListener('change', async (event) => {
-  const file = event.target.files[0];
+              // Write input file to FFmpeg's virtual filesystem
+              const fileName = file.name;
+              console.log(`Writing file ${fileName} to virtual filesystem...`);
+              ffmpeg.FS('writeFile', fileName, await fetchFile(file));
 
-  if (file && file.type === 'audio/mp3') {
-    console.log('Processing MP3 file...');
+              // Get user input for pitch and tempo
+              const pitch = document.getElementById('pitch').value || '0';
+              const tempo = document.getElementById('tempo').value || '1';
 
-    // Display audio player container
-    const audioPlayerContainer = document.getElementById('audioPlayerContainer');
-    audioPlayerContainer.style.display = 'block';
+              console.log(`Running FFmpeg command with pitch: ${pitch}, tempo: ${tempo}`);
 
-    // Write the file to FFmpeg's virtual filesystem
-    try {
-      await ffmpeg.FS('writeFile', file.name, await fetchFile(file));
+              const outputFileName = 'edited.mp3';
 
-      // Run FFmpeg to ensure the file is readable or process if needed
-      await ffmpeg.run('-i', file.name, 'output.mp3');
+              // Run the FFmpeg command
+              await ffmpeg.run(
+                  '-i', fileName,
+                  '-af', `rubberband=pitch=${pitch}:tempo=${tempo}`,
+                  outputFileName
+              );
 
-      // Read the processed output file
-      const data = ffmpeg.FS('readFile', 'output.mp3');
+              console.log("FFmpeg command executed successfully.");
 
-      // Create a Blob URL for the processed audio file
-      const blob = new Blob([data.buffer], { type: 'audio/mp3' });
-      const url = URL.createObjectURL(blob);
+              // Retrieve processed file from the virtual filesystem
+              const data = ffmpeg.FS('readFile', outputFileName);
+              console.log(`File processed. Size: ${data.length} bytes`);
 
-      // Set the audio player source to the Blob URL
-      const audioPlayer = document.getElementById('audioPlayer');
-      audioPlayer.src = url;
+              // Create a Blob from the processed data
+              const blob = new Blob([data.buffer], { type: 'audio/mpeg' });
 
-      console.log('MP3 file is ready for playback!');
-    } catch (error) {
-      console.error('Error processing the MP3 file:', error);
-      alert('There was an error processing the MP3 file. Please try again.');
-    }
-  } else {
-    alert('Please upload a valid MP3 file.');
-  }
+              // Set up the download link
+              const downloadLink = document.getElementById('downloadLink');
+              downloadLink.href = URL.createObjectURL(blob);
+              downloadLink.style.display = 'block';
+              downloadLink.download = 'edited.mp3';
+              downloadLink.textContent = 'Download Edited File';
+
+          } catch (error) {
+              console.error("Error during file processing:", error);
+              alert('Failed to process the file. Check the console for details.');
+          }
+      };
+  });
 });

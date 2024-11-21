@@ -1,27 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FFmpeg MP3 to Audio Player</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MP3 Processor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@latest/dist/ffmpeg.min.js"></script>
 </head>
 <body>
-  <h1>Upload an MP3 File</h1>
+    <h1>MP3 Processor with FFmpeg.js</h1>
+    <input type="file" id="fileInput" accept=".mp3" />
+    <button id="processBtn" disabled>Process File</button>
+    <a id="downloadLink" style="display: none;" download="output.mp3">Download Processed File</a>
+    <div id="editor" style="display: none;">
+      <label for="pitch">Pitch (semitones, e.g., -1 for lower, 1 for higher):</label>
+      <input type="number" id="pitch" value="0" step="1" />
+      <br />
+      <label for="tempo">Tempo (e.g., 1.5 for 50% faster, 0.5 for 50% slower):</label>
+      <input type="number" id="tempo" value="1" step="0.1" />
+      <br />
+      <button id="applyEdits">Apply Rubberband</button>
+    </div>
 
-  <!-- File Input -->
-  <input type="file" id="fileInput" accept=".mp3">
-  
-  <!-- Audio Player -->
-  <div id="audioPlayerContainer" style="display: none;">
-    <audio id="audioPlayer" controls></audio>
-  </div>
-
-  <!-- Load FFmpeg.js from CDN first -->
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@latest"></script>
-
-  <!-- Link to the External JavaScript File -->
-  <script type="module" src="music.js"></script>
-  
-
+    <script src="music.js"></script>
 </body>
 </html>
