@@ -1,55 +1,54 @@
-document.addEventListener('DOMContentLoaded', function () {
-    let sound;
+document.addEventListener("DOMContentLoaded", function () {
+  let sound;
 
-    // Elements
-    const fileInput = document.getElementById('fileInput');
-    const tempoSlider = document.getElementById('tempo');
-    const applyEditsButton = document.getElementById('applyEdits');
+  const processBtn = document.getElementById('processBtn');
+  const fileInput = document.getElementById('fileInput');
+  const editor = document.getElementById('editor');
 
-    // Event Listeners
-    fileInput.addEventListener('change', handleFileSelect);
-    applyEditsButton.addEventListener('click', applyEdits);
+  // Enable file processing when a file is selected
+  fileInput.addEventListener('change', handleFileSelect);
 
-    // Handle File Selection
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            loadAndPlayAudio(url, file.name);
-        }
-    }
+  function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (file) {
+          const url = URL.createObjectURL(file);
+          loadAndPlayAudio(url);
+      }
+  }
 
-    // Load and Play Audio
-    function loadAndPlayAudio(url, fileName) {
-        const fileExtension = fileName.split('.').pop().toLowerCase();
-        const supportedFormats = ['mp3', 'ogg', 'wav'];
+  function loadAndPlayAudio(url) {
+      // Stop any currently playing sound
+      if (sound) {
+          sound.stop();
+          sound.unload(); // Unload the previous sound to free resources
+      }
 
-        if (!supportedFormats.includes(fileExtension)) {
-            alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
-            return;
-        }
+      // Create a new Howl instance with the audio URL
+      sound = new Howl({
+          src: [url],
+          format: ['mp3', 'wav'], // Support MP3 and WAV formats
+          onload: function () {
+              processBtn.disabled = false;
+              editor.style.display = 'block';
+              sound.play();
+          }
+      });
+  }
 
-        // Create a new Howl instance
-        sound = new Howl({
-            src: [url],
-            format: [fileExtension],
-            onload: function () {
-                console.log('Audio loaded successfully.');
-            }
-        });
+  // Function to apply pitch and tempo changes
+  function applyEdits() {
+      const pitch = parseFloat(document.getElementById('pitch').value);  // Pitch in semitones
+      const tempo = parseFloat(document.getElementById('tempo').value);  // Tempo as a multiplier
 
-        // Play the audio
-        sound.play();
-    }
+      if (sound) {
+          sound.stop(); // Stop the sound before applying edits
+      }
 
-    // Apply Tempo Adjustments
-    function applyEdits() {
-        if (sound) {
-            const tempoValue = parseFloat(tempoSlider.value);
-            sound.rate(tempoValue); // Adjust playback speed
-            console.log(`Applied tempo adjustment: ${tempoValue}`);
-        } else {
-            alert('Please upload and play an audio file first.');
-        }
-    }
+      sound.rate(tempo); // Adjust playback speed (tempo)
+      console.log(`Pitch: ${pitch} semitones, Tempo: ${tempo}`);
+      sound.play(); // Replay with the new settings
+  }
+
+  // Event listener to apply the edits when button is clicked
+  processBtn.addEventListener('click', applyEdits);
 });
