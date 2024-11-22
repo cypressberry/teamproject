@@ -4,19 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../css/slugofi.css">
-	<link rel="stylesheet" type="text/css" href="css/slugofi.css">
-	<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-	<script type="text/javascript" src="./js/slugofi.js" DEFER></script>
-    <!-- font import -->
+    <link rel="stylesheet" type="text/css" href="css/slugofi.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script type="text/javascript" src="./js/slugofi.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/howler"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- title -->
     <title>Slugofi</title>
-    <!-- background -->
-     
-     <style>
-         body {
+    <style>
+        body {
             margin: 0;
             height: 100vh;
             background-image: url('img/background.png');
@@ -24,32 +21,70 @@
             background-repeat: no-repeat;
             background-position: center;
         }
-     </style>
-
+    </style>
 </head>
 <body>
-<h1 class = "main-heading">slugofi</h1>
+<h1 class="main-heading">slugofi</h1>
 
-    <div id="files_div">
-        <div class="file-wrapper">
-            <img id="upload_img" src="img/slugofile1.png"/>
-            <h4 id="upload_text">upload</h4> 
-        </div>
-        
-        <div class="file-wrapper">
-            <img id="download_img" src="img/slugofile1.png"/>
-            <h4 id="download_text">download</h4>
-        </div>
+<div id="files_div">
+    <div class="file-wrapper">
+        <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
+        <h4 id="upload_text">Upload</h4>
+        <input type="file" id="fileInput" accept=".mp3" style="display: none;" />
+        <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p>
     </div>
-
-    <div id = "cd_div">
-        <img id = "cd_img" src = "img/cd.png" />
+    
+    <div class="file-wrapper">
+        <img id="download_img" src="img/slugofile1.png" />
+        <h4 id="download_text">download</h4>
     </div>
+</div>
 
-    <input id = "reverb_slider" type="range" min="0" max="100" value="50">
-    <h4 id = "reverb_text">reverb</h4>
-    <br>
-    <input id = "speed_slider" type="range" min="0" max="100" value="50">
-    <h4 id = "speed_text">speed</h4>
+<div id="cd_div">
+    <img id="cd_img" src="img/cd.png" />
+</div>
+
+<!-- Add audio player -->
+<div id="audio_player" style="display: none; margin-top: 20px;">
+    <audio id="audioElement" controls style="width: 100%;"></audio>
+</div>
+
+<input id="reverb_slider" type="range" min="0" max="100" value="50">
+<h4 id="reverb_text">reverb</h4>
+<br>
+<input id="speed_slider" type="range" min="0" max="100" value="50">
+<h4 id="speed_text">speed</h4>
+
+<script>
+    const uploadImg = document.getElementById('upload_img');
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDisplay = document.getElementById('fileName');
+    const audioPlayer = document.getElementById('audio_player');
+    const audioElement = document.getElementById('audioElement');
+
+    uploadImg.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+
+            fileNameDisplay.textContent = `Selected file: ${file.name}`;
+            fileNameDisplay.style.display = 'block';
+
+            // Play audio
+            audioElement.src = url; 
+            audioPlayer.style.display = 'block'; 
+            audioElement.play(); 
+        } else {
+            fileNameDisplay.textContent = 'No file selected';
+        }
+    });
+</script>
 </body>
 </html>
+
+	
