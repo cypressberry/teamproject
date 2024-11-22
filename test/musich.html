@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MP3 Processor</title>
     <script src="https://cdn.jsdelivr.net/npm/howler"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/master/dist/recorder.js"></script>
 </head>
 <body>
     <h1>MP3 Processor with FFmpeg.js</h1>
     <input type="file" id="fileInput" accept=".mp3" />
     <button id="processBtn" disabled>Process File</button>
-    <a id="downloadLink" style="display: none;" download="output.wav">Download Processed File</a>
+    <a id="downloadLink" style="display: none;" download="output.mp3">Download Processed File</a>
     <div id="editor" style="display: none;">
       <label for="pitch">Pitch (semitones, e.g., -1 for lower, 1 for higher):</label>
       <input type="number" id="pitch" value="0" step="1" />
