@@ -1,57 +1,55 @@
 document.addEventListener('DOMContentLoaded', function () {
-  let sound;
+    let sound;
 
-  // Function to handle file selection and play audio
-  document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-  document.getElementById('applyEdits').addEventListener('click', applyEdits);
+    // Elements
+    const fileInput = document.getElementById('fileInput');
+    const tempoSlider = document.getElementById('tempo');
+    const applyEditsButton = document.getElementById('applyEdits');
 
-  function handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-          const url = URL.createObjectURL(file);
-          loadAndPlayAudio(url, file.name);
-      }
-  }
+    // Event Listeners
+    fileInput.addEventListener('change', handleFileSelect);
+    applyEditsButton.addEventListener('click', applyEdits);
 
-  function loadAndPlayAudio(url, fileName) {
-      // Determine the file extension and format
-      const fileExtension = fileName.split('.').pop().toLowerCase();
-      const formats = ['mp3', 'ogg', 'wav'];
+    // Handle File Selection
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const url = URL.createObjectURL(file);
+            loadAndPlayAudio(url, file.name);
+        }
+    }
 
-      if (!formats.includes(fileExtension)) {
-          alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
-          return;
-      }
+    // Load and Play Audio
+    function loadAndPlayAudio(url, fileName) {
+        const fileExtension = fileName.split('.').pop().toLowerCase();
+        const supportedFormats = ['mp3', 'ogg', 'wav'];
 
-      // Create a new Howl instance with the audio URL and format property
-      sound = new Howl({
-          src: [url],
-          format: [fileExtension],  // Explicitly define the format based on the file extension
-          onload: function () {
-              // Enable the button once the audio is loaded
-              document.getElementById('processBtn').disabled = false;
-              document.getElementById('editor').style.display = 'block';
-          }
-      });
+        if (!supportedFormats.includes(fileExtension)) {
+            alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
+            return;
+        }
 
-      // Play the audio
-      sound.play();
-  }
+        // Create a new Howl instance
+        sound = new Howl({
+            src: [url],
+            format: [fileExtension],
+            onload: function () {
+                console.log('Audio loaded successfully.');
+            }
+        });
 
-  // Apply pitch and tempo adjustments
-  function applyEdits() {
-      const pitch = parseFloat(document.getElementById('pitch').value);  // Pitch in semitones
-      const tempo = parseFloat(document.getElementById('tempo').value);  // Tempo as a multiplier
+        // Play the audio
+        sound.play();
+    }
 
-      // Adjust pitch and tempo (rate affects both)
-      sound.rate(tempo);  // Change playback speed (tempo)
-      
-      // Howler.js doesn't directly support pitch shifting, but you can modify the rate
-      // Rate of 1 is normal, higher than 1 speeds it up, lower than 1 slows it down
-      // Pitch shift can be simulated by changing the rate
-      console.log(`Pitch: ${pitch} semitones, Tempo: ${tempo}`);
-
-      // Replay the audio with the new rate (which simulates both tempo and pitch changes)
-      sound.play();
-  }
+    // Apply Tempo Adjustments
+    function applyEdits() {
+        if (sound) {
+            const tempoValue = parseFloat(tempoSlider.value);
+            sound.rate(tempoValue); // Adjust playback speed
+            console.log(`Applied tempo adjustment: ${tempoValue}`);
+        } else {
+            alert('Please upload and play an audio file first.');
+        }
+    }
 });
