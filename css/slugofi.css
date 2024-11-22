@@ -60,16 +60,19 @@
 /* CD IMAGE SECTION */
 #cd_div {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Stack elements vertically */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
     margin-top: 30px;
     box-sizing: border-box;
 }
+
 #cd_img {
     max-width: 300px;
     height: auto;
-
+    margin-bottom: 20px; /* Add space below the CD image */
 }
+
 
 /* SLIDERS FOR REVERB AND SPEED */
 
@@ -89,4 +92,44 @@
     font-family: "Pixelify Sans", sans-serif;
     color: white;
     letter-spacing: 2px;
+}
+
+
+#cd_div {
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Center items vertically */
+    margin-top: 30px;
+    box-sizing: border-box;
+}
+#applyEdits {
+    display: block; /* Ensure the button is treated as a block element */
+    margin: 10px auto; /* Center horizontally and add spacing below the image */
+    padding: 10px 20px; /* Add padding for better button size */
+    font-family: "Pixelify Sans", sans-serif;
+    font-size: 16px;
+    color: white;
+    background-color: #333; /* Add a background color for better visibility */
+    border: none; /* Remove default borders */
+    border-radius: 5px; /* Add rounded corners */
+    cursor: pointer; /* Show a pointer cursor on hover */
+}
+
+#applyEdits:hover {
+    background-color: #555; /* Slightly lighter background on hover */
+}
+
+
+#speed_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+    margin-top: 5px; /* Add some spacing above the text */
+}
+
+#tempo {
+    margin-top: 50px; /* Adds space above the slider */
+    margin-bottom: 10px; /* Adds space below the slider */
+  
 }

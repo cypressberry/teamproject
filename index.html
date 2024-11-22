@@ -25,7 +25,7 @@
 </head>
 <body>
 <h1 class="main-heading">slugofi</h1>
-<button id="applyEdits"> Apply Edits</button>
+
 <div id="files_div">
     <div class="file-wrapper">
         <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
@@ -42,12 +42,15 @@
 
 <div id="cd_div">
     <img id="cd_img" src="img/cd.png" />
+    <button id="applyEdits"> Apply Edits</button>
+    <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
+    <h4 id="speed_text">Speed</h4>
 </div>
 
 <!-- Add audio player -->
 <br>
-<input id="tempo" type="range" min="0" max="3" step='.05' value="1">
-<h4 id="speed_text">speed</h4>
+<!-- <input id="tempo" type="range" min="0" max="3" step='.05' value="1">
+<h4 id="speed_text">speed</h4> -->
 
 <script>
     const uploadImg = document.getElementById('upload_img');
