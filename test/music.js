@@ -10,8 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const applyEditsButton = document.getElementById('applyEdits');
   const downloadImg = document.getElementById('download_img');
   const progressSlider = document.getElementById('progressSlider');
-  const playButton = document.getElementById('playButton');
-  const pauseButton = document.getElementById('pauseButton');
+  const playPauseButton = document.getElementById('playPauseButton');
 
   // Click handler for upload image
   uploadImg.addEventListener('click', () => {
@@ -64,20 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
   });
 
-// Event listeners for play and pause buttons
-playButton.addEventListener('click', () => {
+
+
+//Add play and pause event listener
+playPauseButton.addEventListener('click', () => {
     if (sound) {
-        sound.play();
+        if (sound.playing()) {
+            sound.pause();
+            playPauseButton.textContent = 'Play';
+        } else {
+            sound.play();
+            playPauseButton.textContent = 'Pause';
+        }
     } else {
         alert('Please upload an audio file first.');
     }
 });
-
-pauseButton.addEventListener('click', () => {
-    if (sound && sound.playing()) {
-        sound.pause();
-    }
-});  
   
  
   // Load and Play Audio using Howler.js
@@ -114,12 +115,14 @@ pauseButton.addEventListener('click', () => {
             progressInterval = setInterval(() => {
                 progressSlider.value = sound.seek();
             }, 100);
+            playPauseButton.textContent = 'Pause';
         },
         onpause: function() {
             console.log('Audio playback paused.');
             if (progressInterval) {
                 clearInterval(progressInterval);
             }
+            playPauseButton.textContent = 'Play';
         },  
         onstop: function() {
             console.log('Audio playback stopped.');
@@ -130,6 +133,7 @@ pauseButton.addEventListener('click', () => {
         onend: function() {
             sound.play(); // Restart the audio when it ends (loop)
             console.log('Audio playback ended.');
+            playPauseButton.textContent = 'Play';
         }
     });
 }
