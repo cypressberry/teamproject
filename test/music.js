@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   let sound = null;
   let fileUrl = null;
+  let progressInterval = null;
 
   const fileInput = document.getElementById('fileInput');
   const tempoSlider = document.getElementById('tempo');
@@ -8,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileNameDisplay = document.getElementById('fileName');
   const applyEditsButton = document.getElementById('applyEdits');
   const downloadImg = document.getElementById('download_img');
+  const progressSlider = document.getElementById('progressSlider');
 
   // Click handler for upload image
   uploadImg.addEventListener('click', () => {
@@ -59,7 +61,8 @@ document.addEventListener('DOMContentLoaded', () => {
           alert("Failed to process audio. Please try again.");
       }
   });
-
+  
+ 
   // Load and Play Audio using Howler.js
   function loadAndPlayAudio(url, fileName) {
     const fileExtension = fileName.split('.').pop().toLowerCase();
@@ -81,7 +84,31 @@ document.addEventListener('DOMContentLoaded', () => {
         format: [fileExtension],
         onload: function () {
             console.log('Audio loaded successfully.');
+            progressSlider.max = sound.duration(); // Set slider max to audio duration
             sound.play();
+        },
+        onplay: function () {
+            console.log('Audio playback started.');
+            // Clear any existing interval
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+            // Update the slider every 100ms
+            progressInterval = setInterval(() => {
+                progressSlider.value = sound.seek();
+            }, 100);
+        },
+        onpause: function() {
+            console.log('Audio playback paused.');
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
+        },  
+        onstop: function() {
+            console.log('Audio playback stopped.');
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
         },
         onend: function() {
             sound.play(); // Restart the audio when it ends (loop)
@@ -180,4 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
       URL.revokeObjectURL(url);
       console.log("Processed audio downloaded.");
   }
+
+  progressSlider.addEventListener('input', () => {
+    if (sound) {
+        sound.seek(progressSlider.value);
+    }
+});
+
+
 });
