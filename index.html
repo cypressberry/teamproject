@@ -29,7 +29,7 @@
 <div id="files_div">
     <div class="file-wrapper">
         <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
-        <h4 id="upload_text">Upload</h4>
+        <h4 id="upload_text">upload</h4>
         <input type="file" id="fileInput" accept=".mp3" style="display: none;" />
         <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p>
     </div>
@@ -42,9 +42,9 @@
 
 <div id="cd_div">
     <img id="cd_img" src="img/cd.png" />
-    <button id="applyEdits"> Apply Edits</button>
+    <button id="applyEdits"> apply edits</button>
     <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
-    <h4 id="speed_text">Speed</h4>
+    <h4 id="speed_text">speed</h4>
 </div>
 
 <!-- Add audio player -->
@@ -52,35 +52,6 @@
 <!-- <input id="tempo" type="range" min="0" max="3" step='.05' value="1">
 <h4 id="speed_text">speed</h4> -->
 
-<script>
-    const uploadImg = document.getElementById('upload_img');
-    const fileInput = document.getElementById('fileInput');
-    const fileNameDisplay = document.getElementById('fileName');
-    //const audioPlayer = document.getElementById('audio_player');
-    const audioElement = document.getElementById('audioElement');
-
-    uploadImg.addEventListener('click', () => {
-        fileInput.click();
-    });
-
-
-    fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-
-            fileNameDisplay.textContent = `Selected file: ${file.name}`;
-            fileNameDisplay.style.display = 'block';
-
-            // Play audio
-            audioElement.src = url; 
-            audioPlayer.style.display = 'block'; 
-            audioElement.play(); 
-        } else {
-            fileNameDisplay.textContent = 'No file selected';
-        }
-    });
-</script>
 </body>
 </html>
 

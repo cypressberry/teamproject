@@ -1,27 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MP3 Processor</title>
-    <script src="https://cdn.jsdelivr.net/npm/howler"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdn.rawgit.com/mattdiamond/Recorderjs/master/dist/recorder.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.39/Tone.min.js"></script>
+  <title>Audio Playback and Download</title>
 </head>
 <body>
-    <h1>MP3 Processor with FFmpeg.js</h1>
-    <input type="file" id="fileInput" accept=".mp3" />
-    <button id="processBtn" disabled>Process File</button>
-    <a id="downloadLink" style="display: none;" download="output.wav">Download Processed File</a>
-    <div id="editor" style="display: none;">
-      <label for="pitch">Pitch (semitones, e.g., -1 for lower, 1 for higher):</label>
-      <input type="number" id="pitch" value="0" step="1" />
-      <br />
-      <label for="tempo">Tempo (e.g., 1.5 for 50% faster, 0.5 for 50% slower):</label>
-      <input type="number" id="tempo" value="1" step="0.1" />
-      <br />
-      <button id="applyEdits">Apply Rubberband</button>
-    </div>
-    <script src="music.js"></script>
+  <h1>Audio Tempo Adjuster</h1>
+  <input type="file" id="fileInput" accept="audio/*" />
+  <label for="tempo">Tempo:</label>
+  <input type="range" id="tempo" min="0.5" max="2" step="0.1" value="1" />
+  <br><br>
+  <button id="play">Play</button>
+  <button id="stop">Stop</button>
+  <button id="download">Download Processed Audio</button>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let audioBuffer;
+      let audioContext;
+      let sourceNode;
+      let audioSource;
+      const fileInput = document.getElementById('fileInput');
+      const tempoSlider = document.getElementById('tempo');
+      const playButton = document.getElementById('play');
+      const stopButton = document.getElementById('stop');
+      const downloadButton = document.getElementById('download');
+
+      // Load audio file when selected
+      fileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const url = URL.createObjectURL(file);
+          audioBuffer = await loadAudioBuffer(url);
+          console.log("Audio loaded successfully.");
+        }
+      });
+
+      // Handle audio processing and downloading
+      downloadButton.addEventListener('click', async () => {
+        if (!audioBuffer) {
+          alert('Please upload an audio file first.');
+          return;
+        }
+
+        const tempo = parseFloat(tempoSlider.value);
+        const processedBlob = await processAudio(audioBuffer, tempo);
+        downloadBlob(processedBlob, 'processed_audio.wav');
+      });
+
+      // Play the audio
+      playButton.addEventListener('click', () => {
+        if (!audioBuffer) {
+          alert('Please upload an audio file first.');
+          return;
+        }
+
+        if (audioContext && audioContext.state === 'suspended') {
+          audioContext.resume(); // Ensure audio context is running if it is suspended
+        }
+
+        const tempo = parseFloat(tempoSlider.value);
+        playAudio(audioBuffer, tempo);
+      });
+
+      // Stop the audio
+      stopButton.addEventListener('click', () => {
+        if (audioSource) {
+          audioSource.stop(); // Stop the currently playing audio
+          console.log("Audio stopped.");
+        }
+      });
+
+      // Load audio into an AudioBuffer
+      async function loadAudioBuffer(url) {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        return await audioContext.decodeAudioData(arrayBuffer);
+      }
+
+      // Play audio with tempo adjustment
+      function playAudio(buffer, tempo) {
+        if (audioSource) {
+          audioSource.stop(); // Stop previous audio if still playing
+        }
+
+        audioSource = audioContext.createBufferSource();
+        audioSource.buffer = buffer;
+        audioSource.playbackRate.value = tempo;
+
+        // Connect to destination
+        audioSource.connect(audioContext.destination);
+        audioSource.start(0);
+        console.log("Audio started playing.");
+      }
+
+      // Process audio offline and return the result as a Blob
+      async function processAudio(buffer, tempo) {
+        const offlineContext = new OfflineAudioContext(
+          buffer.numberOfChannels,
+          buffer.length / tempo,
+          buffer.sampleRate
+        );
+
+        // Create a buffer source
+        const source = offlineContext.createBufferSource();
+        source.buffer = buffer;
+        source.playbackRate.value = tempo;
+
+        // Connect source to destination
+        source.connect(offlineContext.destination);
+        source.start(0);
+
+        // Render the audio
+        const renderedBuffer = await offlineContext.startRendering();
+
+        // Convert the rendered buffer to a Blob
+        return audioBufferToBlob(renderedBuffer);
+      }
+
+      // Convert AudioBuffer to Blob
+      function audioBufferToBlob(buffer) {
+        const numOfChannels = buffer.numberOfChannels;
+        const length = buffer.length * numOfChannels * 2 + 44;
+        const wavBuffer = new ArrayBuffer(length);
+        const view = new DataView(wavBuffer);
+
+        // Write WAV header
+        const writeString = (view, offset, string) => {
+          for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+          }
+        };
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChannels, true);
+        view.setUint32(24, buffer.sampleRate, true);
+        view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
+        view.setUint16(32, numOfChannels * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, buffer.length * numOfChannels * 2, true);
+
+        // Write interleaved PCM data
+        let offset = 44;
+        for (let i = 0; i < buffer.length; i++) {
+          for (let channel = 0; channel < numOfChannels; channel++) {
+            const sample = buffer.getChannelData(channel)[i] * 32767;
+            view.setInt16(offset, sample < 0 ? sample | 0x8000 : sample, true);
+            offset += 2;
+          }
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+      }
+
+      // Trigger download of Blob
+      function downloadBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        console.log("Processed audio downloaded.");
+      }
+    });
+  </script>
 </body>
 </html>
