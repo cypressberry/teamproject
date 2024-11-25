@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const applyEditsButton = document.getElementById('applyEdits');
   const downloadImg = document.getElementById('download_img');
   const progressSlider = document.getElementById('progressSlider');
+  const playButton = document.getElementById('playButton');
+  const pauseButton = document.getElementById('pauseButton');
 
   // Click handler for upload image
   uploadImg.addEventListener('click', () => {
@@ -61,6 +63,21 @@ document.addEventListener('DOMContentLoaded', () => {
           alert("Failed to process audio. Please try again.");
       }
   });
+
+// Event listeners for play and pause buttons
+playButton.addEventListener('click', () => {
+    if (sound) {
+        sound.play();
+    } else {
+        alert('Please upload an audio file first.');
+    }
+});
+
+pauseButton.addEventListener('click', () => {
+    if (sound && sound.playing()) {
+        sound.pause();
+    }
+});  
   
  
   // Load and Play Audio using Howler.js
