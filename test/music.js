@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadImg = document.getElementById('download_img');
   const progressSlider = document.getElementById('progressSlider');
   const playPauseButton = document.getElementById('playPauseButton');
+  let originalFileName = '';
+
+
 
   // Click handler for upload image
   uploadImg.addEventListener('click', () => {
@@ -22,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const file = event.target.files[0];
       if (file) {
           fileUrl = URL.createObjectURL(file);
+          originalFileName = file.name;
           try {
               loadAndPlayAudio(fileUrl, file.name);
               fileNameDisplay.textContent = `Selected file: ${file.name}`;
@@ -56,7 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
           const tempo = parseFloat(tempoSlider.value);
           const processedBlob = await processAudio(fileUrl, tempo);
-          downloadBlob(processedBlob, 'processed_audio.wav');
+
+          // Generate a new file name based on the original file name
+          const newFileName = generateNewFileName(originalFileName);
+          downloadBlob(processedBlob, newFileName);
       } catch (error) {
           console.error("Error processing audio for download:", error);
           alert("Failed to process audio. Please try again.");
@@ -235,5 +242,17 @@ playPauseButton.addEventListener('click', () => {
     }
 });
 
+function generateNewFileName(originalName) {
+    // Extract the file name without extension
+    const dotIndex = originalName.lastIndexOf('.');
+    const baseName = dotIndex !== -1 ? originalName.substring(0, dotIndex) : originalName;
+    const extension = dotIndex !== -1 ? originalName.substring(dotIndex) : '';
+
+    // Create the new file name by appending '_edited' before the extension
+    const newFileName = `${baseName}_edited${extension}`;
+
+    return newFileName;
+}
 
 });
+
