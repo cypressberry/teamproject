@@ -19,6 +19,13 @@
 
 }
 
+body {
+    background-image: url('../img/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 /* FILE UPLOAD AND DOWNLOAD SECTION*/
 #files_div {
     display: flex; /* Use Flexbox for layout */
