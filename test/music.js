@@ -111,6 +111,10 @@ playPauseButton.addEventListener('click', () => {
             console.log('Audio loaded successfully.');
             progressSlider.max = sound.duration(); // Set slider max to audio duration
             sound.play();
+
+            // Fade in over 3 seconds (3000 milliseconds)
+            sound.fade(0, 1, 5000);
+
         },
         onplay: function () {
             console.log('Audio playback started.');
