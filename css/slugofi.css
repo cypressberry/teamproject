@@ -19,6 +19,13 @@
 
 }
 
+body {
+    background-image: url('../img/background.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
 /* FILE UPLOAD AND DOWNLOAD SECTION*/
 #files_div {
     display: flex; /* Use Flexbox for layout */
@@ -132,4 +139,31 @@
     margin-top: 50px; /* Adds space above the slider */
     margin-bottom: 10px; /* Adds space below the slider */
   
+}
+
+/* Style for the controls container */
+#controls {
+    display: flex;
+    justify-content: center; /* Center the buttons horizontally */
+    margin-top: 20px;        /* Add some space above the controls */
+}
+
+/* Style for the play/pause button */
+#controls button {
+    margin: 0 10px;                      /* Add horizontal spacing between buttons if you add more later */
+    padding: 10px 20px;                  /* Add padding for better size and clickable area */
+    font-size: 16px;                     /* Increase font size for readability */
+    font-family: "Pixelify Sans", sans-serif; /* Use your desired font */
+    color: white;                        /* Text color */
+    background-color: #333;              /* Background color of the button */
+    border: none;                        /* Remove default border */
+    border-radius: 5px;                  /* Rounded corners */
+    cursor: pointer;                     /* Change cursor to pointer on hover */
+    letter-spacing: 2px;                 /* Space out the letters */
+    text-transform: uppercase;           /* Convert text to uppercase */
+}
+
+/* Hover effect for the button */
+#controls button:hover {
+    background-color: #555; /* Slightly lighter background on hover */
 }
