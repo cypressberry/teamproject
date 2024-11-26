@@ -34,6 +34,72 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function processAudio(url, tempo) {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        const offlineContext = new OfflineAudioContext(
+            audioBuffer.numberOfChannels,
+            audioBuffer.duration * audioBuffer.sampleRate / tempo,
+            audioBuffer.sampleRate
+        );
+        const source = offlineContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = tempo;
+        source.connect(offlineContext.destination);
+        source.start();
+
+        const renderedBuffer = await offlineContext.startRendering();
+        return audioBufferToBlob(renderedBuffer);
+    }
+    
+    // Convert AudioBuffer to Blob
+    function audioBufferToBlob(buffer) {
+        const numOfChannels = buffer.numberOfChannels;
+        const length = buffer.length * numOfChannels * 2 + 44;
+        const wavBuffer = new ArrayBuffer(length);
+        const view = new DataView(wavBuffer);
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        // Write WAV header
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ' );
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChannels, true);
+        view.setUint32(24, buffer.sampleRate, true);
+        view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
+        view.setUint16(32, numOfChannels * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, buffer.length * numOfChannels * 2, true);
+
+        // Write interleaved PCM data
+        let offset = 44;
+        for (let i = 0; i < buffer.length; i++) {
+            for (let channel = 0; channel < numOfChannels; channel++) {
+                let sample = buffer.getChannelData(channel)[i];
+                sample = Math.max(-1, Math.min(1, sample)); // Clamp between -1 and 1
+                sample = sample < 0 ? sample * 32768 : sample * 32767; // Scale to PCM range
+                view.setInt16(offset, sample, true);
+                offset += 2;
+            }
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+
+
     // Click handler for upload image
     uploadImg.addEventListener('click', () => {
         fileInput.click();
