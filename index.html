@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="css/slugofi.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script type="text/javascript" src="./test/music.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/howler"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +37,23 @@
     <button id="applyEdits"> apply edits</button>
     <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
     <h4 id="speed_text">speed</h4>
+</div>
+
+<div id="tags_div">
+    <h3>MP3 Tags</h3>
+    <form id="tags_form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="N/A"><br>
+        <label for="artist">Artist:</label>
+        <input type="text" id="artist" name="artist" value="N/A"><br>
+        <label for="album">Album:</label>
+        <input type="text" id="album" name="album" value="N/A"><br>
+        <label for="year">Year:</label>
+        <input type="text" id="year" name="year" value="N/A"><br>
+        <label for="genre">Genre:</label>
+        <input type="text" id="genre" name="genre" value="N/A"><br>
+        <button id="saveTagsButton" type="button">Save Tags</button>
+    </form>
 </div>
 
 <!-- Add play and pause buttons -->
