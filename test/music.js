@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    progressSlider.value = 0;
+    
     const jsmediatags = window.jsmediatags; // Reference jsmediatags
     const ID3Writer = window.ID3Writer; // Reference ID3Writer for editing tags
 
@@ -135,20 +137,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update the progress bar based on the current playback position
     function updateProgressBar() {
         if (sound && sound.playing()) {
-            const currentTime = sound.seek(); // Get the current playback position
-            const duration = sound.duration(); // Get the total duration
-            progressSlider.max = duration; // Set slider max to the audio duration
-            progressSlider.value = currentTime; // Update slider to the current time
+            const currentTime = sound.seek(); // Get current playback position
+            const duration = sound.duration(); // Get total duration
+            progressSlider.value = currentTime; // Update the slider's current value
+            progressSlider.max = duration; // Ensure max is set to duration
         }
     }
 
     // Continuously update the progress bar while audio is playing
     function startProgressInterval() {
-        if (progressInterval) clearInterval(progressInterval); // Clear any existing intervals
+        if (progressInterval) clearInterval(progressInterval); // Clear existing intervals
         progressInterval = setInterval(updateProgressBar, 100); // Update every 100ms
     }
-
-    // Stop updating the progress bar
+    
     function stopProgressInterval() {
         if (progressInterval) {
             clearInterval(progressInterval);
@@ -309,15 +310,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Audio loaded successfully.');
                 playPauseButton.textContent = 'Pause'; // Set button text to "Pause"
                 sound.play(); // Attempt to play immediately
+        
+                // Set slider max value to audio duration
+                progressSlider.max = sound.duration();
             },
             onplay: function () {
                 console.log('Playback started.');
-                playPauseButton.textContent = 'Pause'; // Ensure button text updates correctly
+                playPauseButton.textContent = 'Pause'; // Update button text
+                startProgressInterval(); // Start updating the progress bar
             },
             onend: function () {
                 console.log('Playback ended.');
                 progressSlider.value = 0; // Reset progress bar
                 playPauseButton.textContent = 'Play'; // Update button text to "Play"
+                stopProgressInterval(); // Stop updating the progress bar
             },
             onloaderror: function (id, error) {
                 console.error('Error loading audio:', error);
@@ -327,6 +333,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error starting playback:', error);
                 alert('Playback failed. Please click Play to start audio.');
             }
-        });
+        });        
     }
 });
