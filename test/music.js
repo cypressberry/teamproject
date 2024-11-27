@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    progressSlider.value = 0;
-    
     const jsmediatags = window.jsmediatags; // Reference jsmediatags
     const ID3Writer = window.ID3Writer; // Reference ID3Writer for editing tags
 
@@ -137,19 +135,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Function to update the progress bar based on the current playback position
     function updateProgressBar() {
         if (sound && sound.playing()) {
-            const currentTime = sound.seek(); // Get current playback position
-            const duration = sound.duration(); // Get total duration
-            progressSlider.value = currentTime; // Update the slider's current value
-            progressSlider.max = duration; // Ensure max is set to duration
+            const currentTime = sound.seek(); // Get the current playback position
+            const duration = sound.duration(); // Get the total duration
+            progressSlider.max = duration; // Set slider max to the audio duration
+            progressSlider.value = currentTime; // Update slider to the current time
         }
     }
 
     // Continuously update the progress bar while audio is playing
     function startProgressInterval() {
-        if (progressInterval) clearInterval(progressInterval); // Clear existing intervals
+        if (progressInterval) clearInterval(progressInterval); // Clear any existing intervals
         progressInterval = setInterval(updateProgressBar, 100); // Update every 100ms
     }
-    
+
+    // Stop updating the progress bar
     function stopProgressInterval() {
         if (progressInterval) {
             clearInterval(progressInterval);
@@ -333,6 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error starting playback:', error);
                 alert('Playback failed. Please click Play to start audio.');
             }
-        });        
+        });
     }
 });
