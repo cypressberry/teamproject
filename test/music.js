@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playPauseButton = document.getElementById('playPauseButton');
     const saveTagsButton = document.getElementById('saveTagsButton'); // New button for saving tags
 
+    progressSlider.value = 0;
+
     const tagsFields = {
         title: document.getElementById('title'),
         artist: document.getElementById('artist'),
