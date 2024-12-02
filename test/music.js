@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playPauseButton = document.getElementById('playPauseButton');
     const saveTagsButton = document.getElementById('saveTagsButton'); // New button for saving tags
 
+    progressSlider.value = 0;
+
     const tagsFields = {
         title: document.getElementById('title'),
         artist: document.getElementById('artist'),
@@ -309,15 +311,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Audio loaded successfully.');
                 playPauseButton.textContent = 'Pause'; // Set button text to "Pause"
                 sound.play(); // Attempt to play immediately
+        
+                // Set slider max value to audio duration
+                progressSlider.max = sound.duration();
             },
             onplay: function () {
                 console.log('Playback started.');
-                playPauseButton.textContent = 'Pause'; // Ensure button text updates correctly
+                playPauseButton.textContent = 'Pause'; // Update button text
+                startProgressInterval(); // Start updating the progress bar
             },
             onend: function () {
                 console.log('Playback ended.');
                 progressSlider.value = 0; // Reset progress bar
                 playPauseButton.textContent = 'Play'; // Update button text to "Play"
+                stopProgressInterval(); // Stop updating the progress bar
             },
             onloaderror: function (id, error) {
                 console.error('Error loading audio:', error);
