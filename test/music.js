@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressSlider = document.getElementById('progressSlider');
     const playPauseButton = document.getElementById('playPauseButton');
     const saveTagsButton = document.getElementById('saveTagsButton'); // New button for saving tags
+    const cdImg = document.getElementById("cd_img");
 
     progressSlider.value = 0;
 
@@ -165,10 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 sound.pause();
                 playPauseButton.textContent = 'Play';
                 stopProgressInterval(); // Stop progress updates when paused
+                cdImg.style.animation = "none"; // stop img rotation
             } else {
                 sound.play();
                 playPauseButton.textContent = 'Pause';
                 startProgressInterval(); // Start updating the progress bar
+                cdImg.style.animation = "rotate 2s linear infinite"; // start img rotation
             }
         } else {
             alert('Please upload an audio file first.');
@@ -192,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             originalFileName = file.name;
             try {
                 loadAndPlayAudio(fileUrl, file.name);
-                fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                fileNameDisplay.textContent = `${file.name}`;
                 fileNameDisplay.style.display = 'block';
                 console.log("Audio loaded successfully.");
                 // Read and display the tags
@@ -319,12 +322,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Playback started.');
                 playPauseButton.textContent = 'Pause'; // Update button text
                 startProgressInterval(); // Start updating the progress bar
+                cdImg.style.animation = "rotate 2s linear infinite";
             },
             onend: function () {
                 console.log('Playback ended.');
                 progressSlider.value = 0; // Reset progress bar
                 playPauseButton.textContent = 'Play'; // Update button text to "Play"
                 stopProgressInterval(); // Stop updating the progress bar
+                cdImg.style.animation = "none";
             },
             onloaderror: function (id, error) {
                 console.error('Error loading audio:', error);
