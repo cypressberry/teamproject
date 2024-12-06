@@ -143,13 +143,14 @@ body {
     color: white;
     letter-spacing: 2px;
     margin-top: 5px; /* Add some spacing above the text */
+    font-size: 18px;
 }
 
 #tempo {
     margin-top: 50px; /* Adds space above the slider */
     margin-bottom: 10px; /* Adds space below the slider */
     accent-color:#DF119E;
-    width: 50%;
+    width: 20%;
   
 }
 
