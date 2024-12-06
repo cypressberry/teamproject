@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             originalFileName = file.name;
             try {
                 loadAndPlayAudio(fileUrl, file.name);
-                fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                fileNameDisplay.textContent = `${file.name}`;
                 fileNameDisplay.style.display = 'block';
                 console.log("Audio loaded successfully.");
                 // Read and display the tags

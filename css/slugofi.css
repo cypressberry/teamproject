@@ -6,7 +6,7 @@
   letter-spacing: 3px;
   font-optical-sizing: auto;
   font-weight: 500px;
-  font-size: 50px;
+  font-size: 60px;
   font-style: normal;
   text-align: center;
 
@@ -37,15 +37,16 @@ body {
     color: white;
     letter-spacing: 2px;
     padding-top: 0px;
-    padding-left: 20px;
+    padding-left: 12.5px;
     margin-top:0;
+    font-size: 20px;
 }
 #download_text {
     font-family: "Pixelify Sans", sans-serif;
     color: white;
     letter-spacing: 2px;
-    padding-left: 7.5px;
     margin-top:0;
+    font-size: 20px;
 }
 
 #upload_img {
@@ -55,6 +56,14 @@ body {
 #download_img {
     max-width: 100px; /* Control image size */
     margin-bottom: 5px; /* Add space between image and text */
+}
+
+#fileName {
+    font-family: "Pixelify Sans", sans-serif;
+    color: rgba(255, 255, 255, 0.595);
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 20px;
 }
 
 /* CD IMAGE SECTION */
