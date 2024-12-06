@@ -1,10 +1,3 @@
-#main-heading {
-    font-family:'Pixelify Sans'
-}
-
-/* // <uniquifier>: Use a unique and descriptive class name
-// <weight>: Use a value from 400 to 700 */
-
 
 /* PAGE HEADING */
 .main-heading {
@@ -138,7 +131,13 @@ body {
 #tempo {
     margin-top: 50px; /* Adds space above the slider */
     margin-bottom: 10px; /* Adds space below the slider */
+    accent-color:#DF119E;
+    width: 50%;
   
+}
+
+#progressSlider {
+    accent-color:#DF119E;
 }
 
 /* Style for the controls container */
