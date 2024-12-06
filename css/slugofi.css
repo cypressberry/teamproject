@@ -22,6 +22,7 @@ body {
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
+    margin-top: -25px;
 }
 
 body::before {
