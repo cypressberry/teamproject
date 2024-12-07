@@ -40,6 +40,7 @@ body::before {
     z-index: -1; /* Put the background behind content */
     filter: brightness(1) contrast(1); /* Apply brightness and contrast effects */
     transition: filter 0.3s ease; /* Smooth transition for any changes to filter */
+    min-height: 100vh; /* Ensure the pseudo-element takes at least full height */
 }
 
 
