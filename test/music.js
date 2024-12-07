@@ -20,22 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyEditsButton = document.getElementById('applyEdits');
     const downloadImg = document.getElementById('download_img');
     const playPauseButton = document.getElementById('playPauseButton');
-    const saveTagsButton = document.getElementById('saveTagsButton'); // New button for saving tags
+
     const cdImg = document.getElementById("cd_img");
     const progressSlider = document.getElementById('progressSlider');
     const body = document.body;
     const filterSlider = document.getElementById('filterSlider'); // Slider for controlling filter frequency
 
+    // Set up the canvas and get the context for drawing
+    const canvas = document.getElementById('visualizerCanvas');
+    const canvasContext = canvas.getContext('2d');
+    let analyserNode = null;  // Global reference to the analyser node
+
+
     // Reverb mix slider
     const reverbMixSlider = document.getElementById('reverbMixSlider');
 
-    const tagsFields = {
-        title: document.getElementById('title'),
-        artist: document.getElementById('artist'),
-        album: document.getElementById('album'),
-        year: document.getElementById('year'),
-        genre: document.getElementById('genre')
-    };
 
     const sliderMiddle = 1.5; // Middle value of the slider corresponds to normal speed
     tempoSlider.value = sliderMiddle;
@@ -89,6 +88,52 @@ document.addEventListener('DOMContentLoaded', () => {
         filter.frequency.value = 1000; // Initial cutoff frequency in Hz
         return filter;
     }
+    function setupVisualizer() {
+        // Create an AudioContext (if not already created)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create an analyser node
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;  // Sets the number of frequency bins (controls the resolution)
+    
+        // Connect the Howler sound node to the analyser
+        const soundNode = sound._sounds[0]._node;
+        soundNode.connect(analyserNode);
+        analyserNode.connect(audioContext.destination);
+    
+        // Create an array to hold the frequency data
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+    
+        // Function to draw the visualizer
+        function drawVisualizer() {
+            analyserNode.getByteFrequencyData(dataArray);  // Get the frequency data
+    
+            // Clear the canvas for the next frame
+            canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+    
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+    
+            // Loop through the frequency data and draw bars on the canvas
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i];
+                canvasContext.fillStyle = `rgb(${barHeight + 100}, 50, 150)`;  // Set color based on bar height
+                canvasContext.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);  // Draw bar
+                x += barWidth + 1;  // Increment the x position for the next bar
+            }
+    
+            // Keep drawing the visualizer while the sound is playing
+            if (sound && sound.playing()) {
+                requestAnimationFrame(drawVisualizer);  // Keep updating the visualizer
+            }
+        }
+    
+        // Start drawing the visualizer
+        drawVisualizer();
+    }
+    
 
     function loadAndPlayAudio(url, fileName) {
         const fileExtension = fileName.split('.').pop().toLowerCase();
@@ -148,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
+                setupVisualizer();
+                
                 playPauseButton.textContent = 'Pause';
                 sound.play();
                 startProgressInterval();

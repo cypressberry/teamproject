@@ -49,23 +49,8 @@
     <input type="range" id="reverbMixSlider" min="0" max="1" step="0.1" value="0.5">
 </div>
 
-<!-- MP3 Tags Section -->
-<div id="tags_div">
-    <h3>MP3 Tags</h3>
-    <form id="tags_form">
-        <label for="title">Title:</label>
-        <input type="text" id="title" name="title" value="N/A"><br>
-        <label for="artist">Artist:</label>
-        <input type="text" id="artist" name="artist" value="N/A"><br>
-        <label for="album">Album:</label>
-        <input type="text" id="album" name="album" value="N/A"><br>
-        <label for="year">Year:</label>
-        <input type="text" id="year" name="year" value="N/A"><br>
-        <label for="genre">Genre:</label>
-        <input type="text" id="genre" name="genre" value="N/A"><br>
-        <button id="saveTagsButton" type="button">Save Tags</button>
-    </form>
-</div>
+<canvas id="visualizerCanvas" width="800" height="200"></canvas>
+
 
 <div id="controls">
     <button id="playPauseButton">Play</button>
