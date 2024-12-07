@@ -6,19 +6,17 @@
 
 /* PAGE HEADING */
 .main-heading {
-    font-family: "Pixelify Sans", sans-serif;
-    color: white;
-    letter-spacing: 3px;
-    font-optical-sizing: auto;
-    font-weight: 500; /* Correct the font weight */
-    font-size: 60px;
-    font-style: normal;
-    text-align: center;
-    margin: 0; /* Ensure no unwanted margin */
-    padding: 0; /* Ensure no unwanted padding */
-    overflow: hidden; /* Prevent any overflow from the heading */
-  }
-      
+  font-family: "Pixelify Sans", sans-serif;
+  color: white;
+  letter-spacing: 3px;
+  font-optical-sizing: auto;
+  font-weight: 500px;
+  font-size: 60px;
+  font-style: normal;
+  text-align: center;
+
+}
+
 html, body {
     height: 100%; /* Ensure both html and body stretch to full height */
     margin: 0; /* Remove default margin */
@@ -49,7 +47,6 @@ body::before {
     transition: filter 0.3s ease; /* Smooth transition for any changes to filter */
     height: 100%; /* Ensure the pseudo-element takes full height */
 }
-
 
 
 
