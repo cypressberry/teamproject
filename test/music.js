@@ -35,10 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reverb mix slider
     const reverbMixSlider = document.getElementById('reverbMixSlider');
 
+    const lowPassMiddle = (parseFloat(filterSlider.min) + parseFloat(filterSlider.max)) / 2; // Middle for filterSlider
+    const reverbMiddle = (parseFloat(reverbMixSlider.min) + parseFloat(reverbMixSlider.max)) / 2; // Middle for reverbMixSlider
+
 
     const sliderMiddle = 1.5; // Middle value of the slider corresponds to normal speed
     tempoSlider.value = sliderMiddle;
     progressSlider.value = 0;
+
+    filterSlider.value = lowPassMiddle;
+    reverbMixSlider.value = reverbMiddle;
 
     uploadImg.addEventListener('click', () => fileInput.click());
 
@@ -87,6 +93,18 @@ document.addEventListener('DOMContentLoaded', () => {
         filter.type = 'lowpass';
         filter.frequency.value = 1000; // Initial cutoff frequency in Hz
         return filter;
+    }
+
+    function setupAudioContext(audioContext) {
+        lowPassFilter = audioContext.createBiquadFilter();
+        lowPassFilter.type = 'lowpass';
+        lowPassFilter.frequency.value = parseFloat(filterSlider.min); // Start at min (normal state)
+
+        dryGainNode = audioContext.createGain();
+        dryGainNode.gain.value = 1; // Start fully dry
+
+        reverbGainNode = audioContext.createGain();
+        reverbGainNode.gain.value = 0; // Start no reverb (fully dry)
     }
     function setupVisualizer() {
         // Create an AudioContext (if not already created)
@@ -246,22 +264,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    applyEditsButton.addEventListener('click', () => {
+    function mapTempoToPlaybackRate(tempo) {
+        const minTempo = parseFloat(tempoSlider.min);
+        const maxTempo = parseFloat(tempoSlider.max);
+        const normalSpeed = sliderMiddle;
+
+        if (tempo === normalSpeed) {
+            return 1;
+        }
+        if (tempo > normalSpeed) {
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        }
+        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
+    }
+
+    // Dynamically update playback speed
+    tempoSlider.addEventListener('input', () => {
         if (sound) {
             const tempo = parseFloat(tempoSlider.value);
             const playbackRate = mapTempoToPlaybackRate(tempo);
             sound.rate(playbackRate);
-            console.log(`Applied playback rate: ${playbackRate}`);
-
+            console.log(`Playback rate updated: ${playbackRate}`);
             updateBackgroundFilter(tempo);
-        } else {
-            alert('Please upload an audio file first.');
         }
     });
 
     function updateBackgroundFilter(tempo) {
         const midpoint = sliderMiddle;
-        let brightness = 1, contrast = 1; // Default values
+        let brightness, contrast;
     
         if (tempo <= midpoint) {
             brightness = 1 - (midpoint - tempo) * 0.1;
@@ -271,11 +301,11 @@ document.addEventListener('DOMContentLoaded', () => {
             contrast = 1 + (tempo - midpoint) * 0.05;
         }
     
-        // Clamp values to avoid invalid filters
+        // Clamp values to avoid invalid filter properties
         brightness = Math.max(0.5, Math.min(1.5, brightness));
         contrast = Math.max(0.5, Math.min(1.5, contrast));
     
-        // Apply filters safely
+        // Apply filter to the body pseudo-element
         document.body.style.setProperty('--brightness', brightness);
         document.body.style.setProperty('--contrast', contrast);
     

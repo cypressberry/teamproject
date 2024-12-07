@@ -319,3 +319,89 @@ body::before {
     transform: scale(1.3); /* Enlarge the thumb more on hover */
     box-shadow: 0 0 60px rgba(223, 17, 158, 1), 0 0 120px rgba(223, 17, 158, 0.9), 0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
 }
+
+#filterSlider,
+#reverbMixSlider {
+    -webkit-appearance: none; /* Remove default appearance for WebKit browsers */
+    -moz-appearance: none; /* Remove default appearance for Firefox */
+    appearance: none;
+    background: #DF119E; /* Change track color */
+    height: 8px; /* Adjust the track height */
+    border-radius: 5px; /* Rounded corners for track */
+    outline: none; /* Remove the outline on focus */
+    transition: background 0.3s ease; /* Smooth background change */
+    width: 20%; /* Adjust width to match other sliders */
+    margin-top: 10px; /* Add spacing from other elements */
+}
+
+#filterSlider{
+    margin-top: 10px;
+}
+
+#reverbMixSlider{
+    margin-top: 40px;
+}
+
+/* Thumb design for WebKit browsers */
+#filterSlider::-webkit-slider-thumb,
+#reverbMixSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; /* Slightly larger thumb */
+    height: 20px; /* Slightly larger thumb */
+    background: #DF119E; /* Change thumb color */
+    border-radius: 50%; /* Make the thumb circular */
+    border: 3px solid #FFF; /* White border for better contrast */
+    box-shadow: 
+        0 0 10px rgba(223, 17, 158, 2.8), /* Inner glow */
+        0 0 20px rgba(223, 17, 158, 2.6), /* Medium glow */
+        0 0 30px rgba(223, 17, 158, 2.4); /* Outer glow */
+    transition: transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transition on interaction */
+}
+
+#filterSlider::-webkit-slider-thumb:hover,
+#reverbMixSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.3); /* Enlarge the thumb more on hover */
+    box-shadow: 
+        0 0 60px rgba(223, 17, 158, 1), 
+        0 0 120px rgba(223, 17, 158, 0.9), 
+        0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
+}
+
+/* Thumb design for Firefox */
+#filterSlider::-moz-range-thumb,
+#reverbMixSlider::-moz-range-thumb {
+    width: 20px; /* Slightly larger thumb */
+    height: 20px; /* Slightly larger thumb */
+    background: #DF119E; /* Change thumb color */
+    border-radius: 50%; /* Make the thumb circular */
+    border: 3px solid #DF119E; /* White border for better contrast */
+    box-shadow: 
+        0 0 40px rgba(223, 17, 158, 1), 
+        0 0 80px rgba(223, 17, 158, 0.8), 
+        0 0 120px rgba(223, 17, 158, 0.6); /* Stronger layered glow effect */
+    transition: transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transition on interaction */
+}
+
+#filterSlider::-moz-range-thumb:hover,
+#reverbMixSlider::-moz-range-thumb:hover {
+    transform: scale(1.3); /* Enlarge the thumb more on hover */
+    box-shadow: 
+        0 0 60px rgba(223, 17, 158, 1), 
+        0 0 120px rgba(223, 17, 158, 0.9), 
+        0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
+}
+
+#lowpass_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+    margin-top: 20px; /* Adjust this value to move the text downward */
+}
+
+#reverb_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+    margin-top: 20px;
+}

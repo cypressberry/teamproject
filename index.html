@@ -38,15 +38,18 @@
     <!-- Tempo Slider -->
     <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
     <h4 id="speed_text">speed</h4>
-    <button id="applyEdits">apply edits</button>
+    
 
     <!-- Low-Pass Filter Slider -->
-    <label for="filterSlider">Low-Pass Filter Frequency:</label>
     <input type="range" id="filterSlider" min="100" max="5000" value="1000" step="100">
+    <label for="filterSlider" id = "lowpass_text">Low-Pass Filter Frequency</label>
 
     <!-- Reverb Mix Slider -->
-    <label for="reverbMixSlider">Reverb Mix:</label>
+
     <input type="range" id="reverbMixSlider" min="0" max="1" step="0.1" value="0.5">
+    <label for="reverbMixSlider" id = "reverb_text">Reverb Mix</label>
+
+    <!-- <button id="applyEdits">apply edits</button> -->
 </div>
 
 <canvas id="visualizerCanvas" width="800" height="200"></canvas>
