@@ -123,11 +123,6 @@ body::before {
     box-sizing: border-box;
 }
 
-#cd_img {
-    max-width: 300px;
-    height: auto;
-    margin-bottom: 20px; /* Add space below the CD image */
-}
 
 @keyframes rotate {
     from {
@@ -157,7 +152,38 @@ body::before {
     color: white;
     letter-spacing: 2px;
 }
+/* Center the CD wrapper container */
+#cd_wrapper {
+    position: relative; /* To position the visualizer canvas around it */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh; /* Full screen height */
+}
 
+/* Visualizer Canvas */
+#visualizerCanvas {
+    position: absolute; /* Position it absolutely within the container */
+    top: 50%; /* Center vertically */
+    left: 50%; /* Center horizontally */
+    transform: translate(-50%, -50%); /* Adjust for perfect centering */
+    width: 500px;
+    height: 500px;
+    border-radius: 50%; /* Make it a circular canvas */
+    opacity: 0.3; /* Lower opacity for a subtle effect */
+    z-index: -1; /* Place behind the CD image */
+    pointer-events: none; /* Prevent interaction with the canvas */
+    mix-blend-mode: multiply; /* Optional: Helps with blending */
+}
+
+/* CD Image */
+#cd_img {
+  max-width: 300px;
+    height: auto;
+    margin-bottom: 20px; /* Add space below the CD image */
+    z-index: 1; /* Ensure the CD image is in front of the visualizer */
+}
 
 #cd_div {
     display: flex;
