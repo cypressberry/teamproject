@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const body = document.body;
     const filterSlider = document.getElementById('filterSlider'); // Slider for controlling filter frequency
 
+<<<<<<< HEAD
     // Set up the canvas and get the context for drawing
     const canvas = document.getElementById('visualizerCanvas');
     const canvasContext = canvas.getContext('2d');
@@ -33,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Reverb mix slider
+=======
+    // Reverb mix slider (make sure it's in your HTML)
+>>>>>>> parent of 88f6f58 (Fixed not updating output file with audio node transforms)
     const reverbMixSlider = document.getElementById('reverbMixSlider');
 
 
@@ -179,7 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 //                        \-> (Wet path) Convolver -> ReverbGainNode -> Destination
                 sourceNode.connect(lowPassFilter);
 
+                // Dry path
                 lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
+
+                // Wet path
                 lowPassFilter.connect(convolverNode);
                 convolverNode.connect(reverbGainNode).connect(audioContext.destination);
 
@@ -304,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tempo = parseFloat(tempoSlider.value);
             const playbackRate = mapTempoToPlaybackRate(tempo);
 
-            // Process the audio file with the applied tempo and effects
+            // Process the audio file with the applied tempo
             const processedBlob = await processAudioForDownload(fileUrl, playbackRate);
 
             // Generate a downloadable file
@@ -317,58 +324,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function processAudioForDownload(url, playbackRate) {
-        // Fetch original file
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
-
-        // Get current slider values
-        const tempo = parseFloat(tempoSlider.value);
-        const playbackRateAdjusted = mapTempoToPlaybackRate(tempo);
-
-        const reverbMix = reverbMixSlider ? parseFloat(reverbMixSlider.value) : 0.5;
-        const filterFreq = filterSlider ? parseFloat(filterSlider.value) : 1000;
 
         const audioContext = new AudioContext();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        // Create an OfflineAudioContext to render the processed audio
         const offlineContext = new OfflineAudioContext(
             audioBuffer.numberOfChannels,
-            audioBuffer.duration * audioBuffer.sampleRate / playbackRateAdjusted,
+            audioBuffer.duration * audioBuffer.sampleRate / playbackRate,
             audioBuffer.sampleRate
         );
 
-        // Set up the source
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
-        source.playbackRate.value = playbackRateAdjusted;
-
-        // Load IR again for offline rendering
-        const irArrayBuffer = await (await fetch('audio/ir.wav')).arrayBuffer();
-        const irBuffer = await offlineContext.decodeAudioData(irArrayBuffer);
-
-        // Create nodes in the offline context
-        const offlineLowPass = offlineContext.createBiquadFilter();
-        offlineLowPass.type = 'lowpass';
-        offlineLowPass.frequency.value = filterFreq;
-
-        const offlineConvolver = offlineContext.createConvolver();
-        offlineConvolver.buffer = irBuffer;
-        offlineConvolver.normalize = true;
-
-        const offlineDryGain = offlineContext.createGain();
-        offlineDryGain.gain.value = 1 - reverbMix;
-
-        const offlineReverbGain = offlineContext.createGain();
-        offlineReverbGain.gain.value = reverbMix;
-
-        // Connect nodes: source -> lowPass -> dryGain + (convolver->reverbGain)
-        source.connect(offlineLowPass);
-        offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination);
-
-        offlineLowPass.connect(offlineConvolver);
-        offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination);
-
+        source.playbackRate.value = playbackRate;
+        source.connect(offlineContext.destination);
         source.start();
 
         const renderedBuffer = await offlineContext.startRendering();
@@ -429,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
     }
 
-    // Listen for changes on the filter slider to adjust the cutoff frequency live
+    // Listen for changes on the filter slider to adjust the cutoff frequency
     filterSlider.addEventListener('input', () => {
         if (lowPassFilter) {
             const frequency = parseFloat(filterSlider.value);
