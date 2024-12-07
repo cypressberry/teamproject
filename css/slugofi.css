@@ -221,7 +221,9 @@ body::before {
 }
 
 #upload_img:hover {
-    filter: hue-rotate(330deg) saturate(3) brightness(1.2); /* Enhance brightness and saturation */
+    filter: hue-rotate(330deg) saturate(5) brightness(1.1) 
+            drop-shadow(0 0 20px rgba(255, 105, 180, 0.8)) /* Bright pink glow */
+            drop-shadow(0 0 40px rgba(255, 105, 180, 0.6)) /* Softer outer glow */;
     transform: scale(1.5); /* Slightly enlarge the image */
 }
 
