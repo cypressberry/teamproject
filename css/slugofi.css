@@ -37,7 +37,7 @@ body::before {
     background-repeat: no-repeat; /* Prevents tiling */
     background-position: center; /* Centers the image */
     z-index: -1; /* Places it behind other content */
-    filter: brightness(1) contrast(1); /* Optional filter effects */
+    filter: brightness(var(--brightness, 1)) contrast(var(--contrast, 1)); /* Use CSS variables */
     transition: filter 0.3s ease; /* Smooth transition for filter changes */
 }
 
