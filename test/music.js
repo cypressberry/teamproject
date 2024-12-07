@@ -261,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateBackgroundFilter(tempo) {
         const midpoint = sliderMiddle;
-        let brightness, contrast;
+        let brightness = 1, contrast = 1; // Default values
     
         if (tempo <= midpoint) {
             brightness = 1 - (midpoint - tempo) * 0.1;
@@ -271,15 +271,17 @@ document.addEventListener('DOMContentLoaded', () => {
             contrast = 1 + (tempo - midpoint) * 0.05;
         }
     
-        // Target the pseudo-element via body style
-        const brightnessValue = Math.max(0.5, brightness);
-        const contrastValue = Math.max(0.5, contrast);
+        // Clamp values to avoid invalid filters
+        brightness = Math.max(0.5, Math.min(1.5, brightness));
+        contrast = Math.max(0.5, Math.min(1.5, contrast));
     
-        document.body.style.setProperty('--brightness', brightnessValue);
-        document.body.style.setProperty('--contrast', contrastValue);
+        // Apply filters safely
+        document.body.style.setProperty('--brightness', brightness);
+        document.body.style.setProperty('--contrast', contrast);
     
-        console.log(`Brightness: ${brightnessValue}, Contrast: ${contrastValue}`);
+        console.log(`Brightness: ${brightness}, Contrast: ${contrast}`);
     }
+    
     
 
     function startProgressInterval() {

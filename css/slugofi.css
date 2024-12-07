@@ -1,4 +1,3 @@
-
 /* PAGE HEADING */
 #main-heading {
     font-family:'Pixelify Sans'
@@ -17,62 +16,30 @@
 
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%; /* Ensure full height */
-    overflow: hidden; /* Prevent unintended overflow */
-}
-
-#main-container {
-    height: 100%; /* Ensure the container takes full height */
-    overflow-y: auto; /* Allow scrolling if necessary */
-}
-
-
 body {
-    overflow-y: auto; /* Allow vertical scrolling if necessary */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-top: -25px;
 }
 
-
-/* Add pseudo-element for background image */
 body::before {
-    content: '';
-    position: fixed;
+    content: ''; /* Necessary for pseudo-elements */
+    position: fixed; /* Covers the entire viewport */
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
     background-image: url('../img/background.png');
-    background-color: black; /* Fallback color */
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    z-index: -1;
-    filter: brightness(var(--brightness, 1)) contrast(var(--contrast, 1));
-    transition: filter 0.6s ease;
+    background-size: cover; /* Ensures the image covers the whole area */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center; /* Centers the image */
+    z-index: -1; /* Places it behind other content */
+    filter: brightness(1) contrast(1); /* Optional filter effects */
+    transition: filter 0.3s ease; /* Smooth transition for filter changes */
 }
-
-
-
-
-
-
-/* body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url('../img/background.png'); 
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    z-index: -1; 
-    filter: brightness(1) contrast(1);
-    transition: filter 0.3s ease; 
-} */
 
 /* FILE UPLOAD AND DOWNLOAD SECTION*/
 #files_div {
@@ -205,7 +172,7 @@ body::before {
     margin-bottom: 10px; /* Adds space below the slider */
     accent-color:#DF119E;
     width: 20%;
-  
+
 }
 
 #progressSlider {
