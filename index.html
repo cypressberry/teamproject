@@ -23,24 +23,34 @@
         <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
         <h4 id="upload_text">upload</h4>
         <input type="file" id="fileInput" accept=".mp3" style="display: none;" />
-        <!-- <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p> -->
     </div>
    
     <div class="file-wrapper">
-        <img id="download_img" src="img/slugofile1.png" />
+        <img id="download_img" src="img/slugofile1.png" alt="Download" />
         <h4 id="download_text">download</h4>
     </div>
 </div>
 
 <div id="cd_div">
-    <img id="cd_img" src="img/cd.png" />
+    <img id="cd_img" src="img/cd.png" alt="CD Image"/>
     <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p>
+
+    <!-- Tempo Slider -->
     <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
     <h4 id="speed_text">speed</h4>
-    <button id="applyEdits"> apply edits</button>
+    <button id="applyEdits">apply edits</button>
+
+    <!-- Low-Pass Filter Slider -->
+    <label for="filterSlider">Low-Pass Filter Frequency:</label>
+    <input type="range" id="filterSlider" min="100" max="5000" value="1000" step="100">
+
+    <!-- Reverb Mix Slider -->
+    <label for="reverbMixSlider">Reverb Mix:</label>
+    <input type="range" id="reverbMixSlider" min="0" max="1" step="0.1" value="0.5">
 </div>
 
-<!-- <div id="tags_div">
+<!-- MP3 Tags Section -->
+<div id="tags_div">
     <h3>MP3 Tags</h3>
     <form id="tags_form">
         <label for="title">Title:</label>
@@ -55,20 +65,13 @@
         <input type="text" id="genre" name="genre" value="N/A"><br>
         <button id="saveTagsButton" type="button">Save Tags</button>
     </form>
-</div> -->
+</div>
 
-<!-- Add play and pause buttons -->
 <div id="controls">
     <button id="playPauseButton">Play</button>
 </div>
 
-<!-- Add audio player -->
 <input type="range" id="progressSlider" min="0" value="0" step="0.1" style="width: 100%;">
-<br>
-<!-- <input id="tempo" type="range" min="0" max="3" step='.05' value="1">
-<h4 id="speed_text">speed</h4> -->
 
 </body>
 </html>
-
-	

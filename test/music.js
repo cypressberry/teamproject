@@ -7,7 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let progressInterval = null;
     let originalFileName = '';
     let selectedFile = null;
-    
+    let lowPassFilter = null; // Global reference to the low-pass filter
+
+    let convolverNode = null;
+    let reverbGainNode = null;
+    let dryGainNode = null;
+
     const fileInput = document.getElementById('fileInput');
     const tempoSlider = document.getElementById('tempo');
     const uploadImg = document.getElementById('upload_img');
@@ -19,6 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const cdImg = document.getElementById("cd_img");
     const progressSlider = document.getElementById('progressSlider');
     const body = document.body;
+    const filterSlider = document.getElementById('filterSlider'); // Slider for controlling filter frequency
+
+    // Reverb mix slider (make sure it's in your HTML)
+    const reverbMixSlider = document.getElementById('reverbMixSlider');
 
     const tagsFields = {
         title: document.getElementById('title'),
@@ -30,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sliderMiddle = 1.5; // Middle value of the slider corresponds to normal speed
     tempoSlider.value = sliderMiddle;
-
     progressSlider.value = 0;
 
     uploadImg.addEventListener('click', () => fileInput.click());
@@ -56,15 +64,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 fileNameDisplay.textContent = `Selected file: ${file.name}`;
                 fileNameDisplay.style.display = 'block';
-            } catch (error) {
+            }
+            catch (error) {
                 console.error("Error loading audio file:", error);
                 alert("Failed to load audio. Please try again.");
             }
-        } else {
+        }
+        else {
             fileNameDisplay.textContent = 'No file selected';
             fileNameDisplay.style.display = 'none';
         }
     });
+
+    async function loadReverbIR(url) {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioContext = Howler.ctx;
+        return audioContext.decodeAudioData(arrayBuffer);
+    }
+
+    function createLowPassFilter(audioContext) {
+        const filter = audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1000; // Initial cutoff frequency in Hz
+        return filter;
+    }
 
     function loadAndPlayAudio(url, fileName) {
         const fileExtension = fileName.split('.').pop().toLowerCase();
@@ -83,7 +107,50 @@ document.addEventListener('DOMContentLoaded', () => {
         sound = new Howl({
             src: [url],
             format: [fileExtension],
-            onload: () => {
+            onload: async () => {
+                const audioContext = Howler.ctx;
+
+                // Create and connect the low-pass filter
+                lowPassFilter = createLowPassFilter(audioContext);
+
+                // Prepare source node
+                const sourceNode = sound._sounds[0]._node;
+                sourceNode.disconnect();
+
+                // Create and load the reverb IR
+                const irBuffer = await loadReverbIR('audio/ir.wav'); // Adjust path if needed
+                convolverNode = audioContext.createConvolver();
+                convolverNode.buffer = irBuffer;
+                convolverNode.normalize = true;
+
+                // Create gain nodes for wet/dry mix
+                dryGainNode = audioContext.createGain();
+                dryGainNode.gain.value = 0.5;   // 50% dry
+                reverbGainNode = audioContext.createGain();
+                reverbGainNode.gain.value = 0.5; // 50% wet
+
+                // Connect the chain:
+                // Source -> LowPassFilter -> (Dry path) DryGainNode -> Destination
+                //                        \-> (Wet path) Convolver -> ReverbGainNode -> Destination
+                sourceNode.connect(lowPassFilter);
+
+                // Dry path
+                lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
+
+                // Wet path
+                lowPassFilter.connect(convolverNode);
+                convolverNode.connect(reverbGainNode).connect(audioContext.destination);
+
+                // Add event listener for the reverb slider now that nodes are created
+                if (reverbMixSlider) {
+                    reverbMixSlider.addEventListener('input', () => {
+                        const mix = parseFloat(reverbMixSlider.value);
+                        dryGainNode.gain.value = 1 - mix;
+                        reverbGainNode.gain.value = mix;
+                        console.log(`Reverb mix set to: ${mix}`);
+                    });
+                }
+
                 playPauseButton.textContent = 'Pause';
                 sound.play();
                 startProgressInterval();
@@ -102,9 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxTempo = parseFloat(tempoSlider.max);
         const normalSpeed = sliderMiddle;
 
-        // Map slider value to playback rate where 2.5 equals 1 (normal speed)
-        if (tempo === normalSpeed) return 1;
-        if (tempo > normalSpeed) return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        if (tempo === normalSpeed) {
+            return 1;
+        }
+        if (tempo > normalSpeed) {
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        }
         return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
     }
 
@@ -114,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sound.pause();
                 playPauseButton.textContent = 'Play';
                 stopProgressInterval();
-                cdImg.style.animation = "none"; 
+                cdImg.style.animation = "none";
             } else {
                 sound.play();
                 playPauseButton.textContent = 'Pause';
@@ -185,14 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Please upload a file before downloading.');
             return;
         }
-    
+
         try {
             const tempo = parseFloat(tempoSlider.value);
             const playbackRate = mapTempoToPlaybackRate(tempo);
-    
+
             // Process the audio file with the applied tempo
             const processedBlob = await processAudioForDownload(fileUrl, playbackRate);
-    
+
             // Generate a downloadable file
             const downloadFileName = `edited_${originalFileName}`;
             downloadBlob(processedBlob, downloadFileName);
@@ -201,42 +271,42 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Failed to download the file. Please try again.');
         }
     });
-    
+
     async function processAudioForDownload(url, playbackRate) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
-    
+
         const audioContext = new AudioContext();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-    
+
         const offlineContext = new OfflineAudioContext(
             audioBuffer.numberOfChannels,
             audioBuffer.duration * audioBuffer.sampleRate / playbackRate,
             audioBuffer.sampleRate
         );
-    
+
         const source = offlineContext.createBufferSource();
         source.buffer = audioBuffer;
         source.playbackRate.value = playbackRate;
         source.connect(offlineContext.destination);
         source.start();
-    
+
         const renderedBuffer = await offlineContext.startRendering();
         return audioBufferToBlob(renderedBuffer);
     }
-    
+
     function audioBufferToBlob(buffer) {
         const numOfChannels = buffer.numberOfChannels;
         const length = buffer.length * numOfChannels * 2 + 44;
         const wavBuffer = new ArrayBuffer(length);
         const view = new DataView(wavBuffer);
-    
+
         function writeString(view, offset, string) {
             for (let i = 0; i < string.length; i++) {
                 view.setUint8(offset + i, string.charCodeAt(i));
             }
         }
-    
+
         // Write WAV header
         writeString(view, 0, 'RIFF');
         view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
@@ -251,7 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         view.setUint16(34, 16, true);
         writeString(view, 36, 'data');
         view.setUint32(40, buffer.length * numOfChannels * 2, true);
-    
+
         // Write interleaved PCM data
         let offset = 44;
         for (let i = 0; i < buffer.length; i++) {
@@ -263,10 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 offset += 2;
             }
         }
-    
+
         return new Blob([view], { type: 'audio/wav' });
     }
-    
+
     function downloadBlob(blob, filename) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -278,5 +348,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-    
+
+    // Listen for changes on the filter slider to adjust the cutoff frequency
+    filterSlider.addEventListener('input', () => {
+        if (lowPassFilter) {
+            const frequency = parseFloat(filterSlider.value);
+            lowPassFilter.frequency.value = frequency;
+            console.log('Low-pass filter frequency set to: ' + frequency + ' Hz');
+        }
+    });
 });
