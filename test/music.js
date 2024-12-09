@@ -127,6 +127,18 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Reverb mix set to: ${mix}`);
     });
 
+    // Volume Slider Control for Wet Gain Node
+    volumeSlider.addEventListener('input', () => {
+        const volume = parseFloat(volumeSlider.value); // Get the slider value
+        if (wetGainNode) {
+            wetGainNode.gain.value = volume; // Set wet signal gain
+            console.log(`Wet gain set to: ${volume}`);
+        } else {
+            console.warn('wetGainNode is not initialized.');
+        }
+    });
+
+
     // Set up both canvases
     function setupCanvases() {
         const visualizerCanvas = document.getElementById('visualizerCanvas');
@@ -227,54 +239,39 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create low-pass filter
         lowPassFilter = audioContext.createBiquadFilter();
         lowPassFilter.type = 'lowpass';
-        lowPassFilter.frequency.value = filterSlider.value;  // Set frequency based on slider value
+        lowPassFilter.frequency.value = parseFloat(filterSlider.value) || 1000;
     
-        // Create analyser node for visualization
+        // Create analyser node
         analyserNode = audioContext.createAnalyser();
         analyserNode.fftSize = 256;
     
-        // Create a ConvolverNode for reverb
-        convolverNode = audioContext.createConvolver();
+        // Create ConvolverNode for reverb
+        const convolverNode = audioContext.createConvolver();
     
-        // Create GainNode to control volume
-        gainNode = audioContext.createGain();
-        gainNode.gain.value = volumeSlider.value; // Set initial volume based on slider value
+        // Create dry and wet gain nodes
+        dryGainNode = audioContext.createGain();
+        dryGainNode.gain.value = 1.0; // Full dry signal by default
     
-        // Update gain value based on volume slider
-        volumeSlider.addEventListener('input', () => {
-            gainNode.gain.value = volumeSlider.value;
-            console.log(`Volume set to: ${gainNode.gain.value}`);
-        });
+        wetGainNode = audioContext.createGain();
+        wetGainNode.gain.value = parseFloat(volumeSlider.value) || 0.5; // Set initial wet signal gain based on slider
     
-        // Load reverb IR and set up effects chain
+        // Load impulse response for reverb
         loadReverbIR('audio/ir.wav').then((irBuffer) => {
             convolverNode.buffer = irBuffer;
-            convolverNode.normalize = true;
-    
-            // Create dry and wet gain nodes for reverb signal
-            dryGainNode = audioContext.createGain();
-            dryGainNode.gain.value = 1;  // Dry signal at full volume
-    
-            wetGainNode = audioContext.createGain();
-            wetGainNode.gain.value = 0.5;  // Wet signal (reverb) at 50%
     
             const sourceNode = sound._sounds[0]._node;
-            sourceNode.connect(gainNode);
-            gainNode.connect(lowPassFilter);
     
-            // Connect nodes in audio effects chain
-            lowPassFilter.connect(analyserNode);
-            analyserNode.connect(audioContext.destination);
-    
+            // Connect nodes
+            sourceNode.connect(lowPassFilter);
             lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
             lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(audioContext.destination);
+            lowPassFilter.connect(analyserNode); // For visualization
     
+            // Start visualization
             visualizeAudio();
-        }).catch((error) => {
-            console.error('Error loading the reverb IR:', error);
-        });
+        }).catch((error) => console.error('Error loading reverb IR:', error));
     }
-
+    
     // Load Reverb File
     async function loadReverbIR(url) {
         const response = await fetch(url);
