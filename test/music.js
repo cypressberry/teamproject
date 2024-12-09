@@ -17,23 +17,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const reverbMixSlider = document.getElementById('reverbMixSlider');
     const fileNameDisplay = document.getElementById('fileName');
     const tempoSlider = document.getElementById('tempo');
+    const cdImg = document.getElementById('cd_img');
     const sliderMiddle = 1.5;
 
     // Set initial slider values
     tempoSlider.value = sliderMiddle;
     progressSlider.value = 0;
 
-    // Create canvas for visualizer
-    const canvas = document.createElement('canvas');
-    const canvasContext = canvas.getContext('2d');
-    document.body.appendChild(canvas);
+    const visualizerCanvas = document.getElementById('visualizerCanvas');
+    const canvasContext = visualizerCanvas.getContext('2d');
 
-    // Resize canvas based on window size
-    canvas.width = window.innerWidth;
-    canvas.height = 200;
+    // Set the canvas dimensions
+    visualizerCanvas.width = 500; // Set width as needed
+    visualizerCanvas.height = 200; // Set height as needed
+
+    // Position the canvas below the CD image
+    const cdDiv = document.getElementById('cd_div');
+    cdDiv.appendChild(visualizerCanvas); // Ensure the canvas appears just below the CD image
+
+    // Optional: Apply some styles to position the canvas
+    visualizerCanvas.style.display = 'block';
+    visualizerCanvas.style.margin = '20px auto';
+    visualizerCanvas.style.zIndex = '1';
 
     // Trigger file input
     uploadImg.addEventListener('click', () => fileInput.click());
+
 
     //File Download
     downloadImg.addEventListener('click', () => {
@@ -88,10 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             sound.pause();
             playPauseButton.textContent = 'Play';
+            cdImg.classList.remove('spin');
+            
         } else {
             if (!sound.playing()) {
                 sound.play();
                 playPauseButton.textContent = 'Pause';
+                cdImg.classList.add('spin');
             }
         }
     });
@@ -141,45 +153,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sound.play();
         playPauseButton.textContent = 'Pause';
+        cdImg.classList.add('spin');
     }
 // Visualize the audio based on volume
-// Visualize the audio based on volume
-function visualizeAudio() {
-    const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
 
-    // Function to update the visualizer continuously
-    function draw() {
-        requestAnimationFrame(draw);
 
-        analyserNode.getByteFrequencyData(dataArray);
+ function visualizeAudio() {
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
 
-        // Clear canvas
-        canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        function draw() {
+            requestAnimationFrame(draw);
 
-        // Calculate the bar width to fit more peaks
-        const barWidth = (canvas.width / bufferLength) * 2;  // More peaks with adjusted width
-        let barHeight;
-        let x = 0;
+            analyserNode.getByteFrequencyData(dataArray);
 
-        // Draw waveform based on frequency data
-        for (let i = 0; i < bufferLength; i++) {
-            barHeight = dataArray[i];
-            const r = barHeight + 25 * (i / bufferLength);
-            const g = 250 * (i / bufferLength);
-            const b = 50;
+            // Clear canvas
+            canvasContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
 
-            // Draw the bars symmetrically from the center
-            canvasContext.fillStyle = `rgb(${r},${g},${b})`;
-            canvasContext.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            // Draw waveform based on canvas size
+            const barWidth = visualizerCanvas.width / bufferLength; // Scale to canvas width
+            let x = 0;
 
-            // Move the x position for the next bar
-            x += barWidth + 1; // Space the bars slightly to avoid overlap
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale to canvas height
+                canvasContext.fillStyle = `rgb(${barHeight}, 100, 150)`;
+                canvasContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
+                x += barWidth;
+            }
         }
+
+        draw(); // Start visualizing
     }
 
-    draw(); // Start drawing the visualization
+
+function resizeCanvas() {
+    const wrapper = document.getElementById('cd_wrapper');
+    const canvas = document.getElementById('visualizerCanvas');
+
+    // Match canvas size to wrapper size
+    canvas.width = wrapper.offsetWidth;
+    canvas.height = wrapper.offsetHeight;
 }
+
+// Call resizeCanvas on page load
+window.addEventListener('load', resizeCanvas);
+
+// Update canvas size on window resize
+window.addEventListener('resize', resizeCanvas);
 
 
     // Map tempo slider value to playback rate

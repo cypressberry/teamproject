@@ -147,41 +147,45 @@ body::before {
 #speed_slider {
 
 }
+
+.spin {
+    animation: spin 2s linear infinite; /* Spin forever */
+}
+
+/* Define the spinning animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #speed_text {
     font-family: "Pixelify Sans", sans-serif;
     color: white;
     letter-spacing: 2px;
 }
 /* Center the CD wrapper container */
-#cd_wrapper {
-    position: relative; /* To position the visualizer canvas around it */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100vw;
-    height: 100vh; /* Full screen height */
-}
 
-/* Visualizer Canvas */
 #visualizerCanvas {
-    position: absolute; /* Position it absolutely within the container */
-    top: 50%; /* Center vertically */
-    left: 50%; /* Center horizontally */
-    transform: translate(-50%, -50%); /* Adjust for perfect centering */
-    width: 500px;
-    height: 500px;
-    border-radius: 50%; /* Make it a circular canvas */
-    opacity: 0.3; /* Lower opacity for a subtle effect */
-    z-index: -1; /* Place behind the CD image */
-    pointer-events: none; /* Prevent interaction with the canvas */
-    mix-blend-mode: multiply; /* Optional: Helps with blending */
+    all: unset; /* Remove any inherited styles for debugging */
+    position: relative; /* Position it naturally in the flow */
+    display: block; /* Ensure it follows block layout rules */
+    width: 100%; /* Full width for testing purposes */
+    height: 200px; /* Set an appropriate height */
+    margin: 20px auto; /* Center it horizontally */
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent to see placement */
+    z-index: 10; /* Make sure it's above other layers */
+    border: 1px solid red; /* Debugging border to visualize */
 }
-
 /* CD Image */
 #cd_img {
   max-width: 300px;
     height: auto;
     margin-bottom: 20px; /* Add space below the CD image */
+    transition: transform 0.5s ease-in-out; /* Smooth transition */
     z-index: 1; /* Ensure the CD image is in front of the visualizer */
 }
 
