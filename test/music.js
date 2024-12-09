@@ -81,13 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             sound.pause();
             playPauseButton.textContent = 'Play';
-            cdImg.classList.remove('spin');
+            cdImg.style.animationPlayState = 'paused'; // Resume animation
             
         } else {
             if (!sound.playing()) {
                 sound.play();
                 playPauseButton.textContent = 'Pause';
-                cdImg.classList.add('spin');
+                cdImg.style.animationPlayState = 'running'; // Resume animation
             }
         }
     });
@@ -304,6 +304,6 @@ document.addEventListener('DOMContentLoaded', () => {
             progressInterval = null;
         }
     }
-    // Listen for changes on the filter slider to adjust the cutoff frequency live
+    
    
 });
