@@ -97,11 +97,6 @@ body::before {
     box-sizing: border-box;
 }
 
-#cd_img {
-    max-width: 300px;
-    height: auto;
-    margin-bottom: 20px; /* Add space below the CD image */
-}
 
 @keyframes rotate {
     from {
@@ -126,12 +121,50 @@ body::before {
 #speed_slider {
 
 }
+
+.spin {
+    animation: spin 2s linear infinite; /* Spin forever */
+}
+
+/* Define the spinning animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #speed_text {
     font-family: "Pixelify Sans", sans-serif;
     color: white;
     letter-spacing: 2px;
 }
+/* Center the CD wrapper container */
+#cd_wrapper{
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: -1; /* Ensure the canvases are in the background */
+}
 
+canvas{
+    display:block;
+}
+
+/* CD Image */
+#cd_img {
+  max-width: 300px;
+    height: auto;
+    margin-bottom: 20px; /* Add space below the CD image */
+    transition: transform 0.5s ease-in-out; /* Smooth transition */
+    z-index: 1; /* Ensure the CD image is in front of the visualizer */
+}
 
 #cd_div {
     display: flex;
