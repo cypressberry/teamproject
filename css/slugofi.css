@@ -168,18 +168,21 @@ body::before {
     letter-spacing: 2px;
 }
 /* Center the CD wrapper container */
-
-#visualizerCanvas {
-    all: unset; /* Remove any inherited styles for debugging */
-    position: relative; /* Position it naturally in the flow */
-    display: block; /* Ensure it follows block layout rules */
-    width: 100%; /* Full width for testing purposes */
-    height: 200px; /* Set an appropriate height */
-    margin: 20px auto; /* Center it horizontally */
-    background: rgba(0, 0, 0, 0.5); /* Semi-transparent to see placement */
-    z-index: 10; /* Make sure it's above other layers */
-    border: 1px solid red; /* Debugging border to visualize */
+#cd_wrapper{
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: -1; /* Ensure the canvases are in the background */
 }
+
+canvas{
+    display:block;
+}
+
 /* CD Image */
 #cd_img {
   max-width: 300px;

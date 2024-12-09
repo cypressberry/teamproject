@@ -1,12 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+   
     let sound = null;
     let selectedFile = null;
     let fileURL = null;
     let lowPassFilter = null;
     let analyserNode = null;
-   
     let progressInterval = null;
-    const distortionSlider = document.getElementById('distortionSlider');
+
+    //docugets
     const fileInput = document.getElementById('fileInput');
     const uploadImg = document.getElementById('upload_img');
     const playPauseButton = document.getElementById('playPauseButton');
@@ -18,34 +19,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileNameDisplay = document.getElementById('fileName');
     const tempoSlider = document.getElementById('tempo');
     const cdImg = document.getElementById('cd_img');
+    const volumeSlider = document.getElementById('volumeSlider');
     const sliderMiddle = 1.5;
 
-    // Set initial slider values
-    tempoSlider.value = sliderMiddle;
-    progressSlider.value = 0;
-
-    const visualizerCanvas = document.getElementById('visualizerCanvas');
-    const canvasContext = visualizerCanvas.getContext('2d');
-
-    // Set the canvas dimensions
-    visualizerCanvas.width = 500; // Set width as needed
-    visualizerCanvas.height = 200; // Set height as needed
-
-    // Position the canvas below the CD image
-    const cdDiv = document.getElementById('cd_div');
-    cdDiv.appendChild(visualizerCanvas); // Ensure the canvas appears just below the CD image
-
-    // Optional: Apply some styles to position the canvas
-    visualizerCanvas.style.display = 'block';
-    visualizerCanvas.style.margin = '20px auto';
-    visualizerCanvas.style.zIndex = '1';
+     // Set initial values
+     tempoSlider.value = sliderMiddle;
+     progressSlider.value = 0;
 
     // Trigger file input
     uploadImg.addEventListener('click', () => fileInput.click());
+    
+    // canvases adjust size on window resize
+    window.addEventListener('resize', setupCanvases);
 
+    // resizeCanvas on page load
+    window.addEventListener('load', setupCanvases);
 
-    //File Download
-    downloadImg.addEventListener('click', () => {
+     //File Download
+     downloadImg.addEventListener('click', () => {
         if (!selectedFile) {
             alert('Please upload a file before downloading.');
             return;
@@ -59,8 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(a);
     });
 
-    // Handle file selection and load into Howler.js 
-    fileInput.addEventListener('change', (event) => {
+     // Handle file selection and load into Howler.js 
+     fileInput.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
             selectedFile = file;
@@ -75,15 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             fileNameDisplay.style.display = 'none';
         }
     });
- // Lowpass Filter slider logic
- filterSlider.addEventListener('input', () => {
-    if (lowPassFilter) {
-        const frequency = parseFloat(filterSlider.value);
-        lowPassFilter.frequency.value = frequency;
-        console.log(`Low-pass filter frequency set to: ${frequency} Hz`);
-    }
-});
-    
+
+    // Play/Pause Button control
     playPauseButton.addEventListener('click', () => {
        
         console.log('Howler playing:', sound.playing());
@@ -108,7 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Apply edits (e.g., change playback rate)
+     // Progress slider control
+     progressSlider.addEventListener('input', () => {
+        if (sound) 
+        sound.seek(progressSlider.value);
+    });
+
+    // Apply edits (change playback rate)
     applyEditsButton.addEventListener('click', () => {
         if (sound) {
             const tempo = parseFloat(tempoSlider.value);
@@ -120,6 +110,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Lowpass Filter slider logic
+    filterSlider.addEventListener('input', () => {
+        if (lowPassFilter) {
+            const frequency = parseFloat(filterSlider.value);
+            lowPassFilter.frequency.value = frequency;
+            console.log(`Low-pass filter frequency set to: ${frequency} Hz`);
+        }
+    });
+
     // Adjust reverb mix based on slider
     reverbMixSlider.addEventListener('input', () => {
         const mix = parseFloat(reverbMixSlider.value);
@@ -128,11 +127,69 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Reverb mix set to: ${mix}`);
     });
 
-    // Progress slider control
-    progressSlider.addEventListener('input', () => {
-        if (sound) 
-        sound.seek(progressSlider.value);
-    });
+    // Set up both canvases
+    function setupCanvases() {
+        const visualizerCanvas = document.getElementById('visualizerCanvas');
+        const mirroredCanvas = document.getElementById('mirroredCanvas');
+        const visualizerContext = visualizerCanvas.getContext('2d');
+        const mirroredContext = mirroredCanvas.getContext('2d');
+
+        // Resize canvases to occupy 50% of the screen each
+        const canvasWidth = window.innerWidth / 2;
+        const canvasHeight = window.innerHeight;
+
+        visualizerCanvas.width = canvasWidth;
+        visualizerCanvas.height = canvasHeight;
+        mirroredCanvas.width = canvasWidth;
+        mirroredCanvas.height = canvasHeight;
+        visualizerCanvas.style.opacity = 0.4;
+        mirroredCanvas.style.opacity = 0.4;
+
+        return { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext };
+    }
+
+    //Vizualisation
+    function visualizeAudio() {
+        const { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext } = setupCanvases();
+    
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+    
+        // Reduce the number of bars rendered (e.g., half the buffer length)
+        const visibleBars = Math.floor(bufferLength / 1.5); // Adjust this number for fewer/wider bars
+        const barWidth = visualizerCanvas.width / visibleBars; // Calculate wider bars
+    
+        function draw() {
+            requestAnimationFrame(draw);
+    
+            analyserNode.getByteFrequencyData(dataArray);
+    
+            // Clear both canvases
+            visualizerContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+            mirroredContext.clearRect(0, 0, mirroredCanvas.width, mirroredCanvas.height);
+    
+            // Draw bars on visualizerCanvas (left)
+            let x = 0;
+            for (let i = 0; i < visibleBars; i++) {
+                const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale height
+                visualizerContext.fillStyle = `rgb(50,${barHeight}, 150)`;
+                visualizerContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
+                x += barWidth;
+            }
+    
+            // Draw mirrored bars on mirroredCanvas (right)
+            x = mirroredCanvas.width; // Start from the right
+            for (let i = 0; i < visibleBars; i++) {
+                const barHeight = dataArray[i] * (mirroredCanvas.height / 255); // Scale height
+                mirroredContext.fillStyle = `rgb(50,${barHeight}, 150)`;
+                mirroredContext.fillRect(x - barWidth, mirroredCanvas.height - barHeight, barWidth, barHeight);
+                x -= barWidth; // Move leftward for the mirrored effect
+            }
+        }
+    
+        draw(); // Start visualization
+    }
+    
 
     // Load and play audio with Howler.js
     function loadAndPlayAudio(url, fileName) {
@@ -155,52 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         playPauseButton.textContent = 'Pause';
         cdImg.classList.add('spin');
     }
-// Visualize the audio based on volume
-
-
- function visualizeAudio() {
-        const bufferLength = analyserNode.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        function draw() {
-            requestAnimationFrame(draw);
-
-            analyserNode.getByteFrequencyData(dataArray);
-
-            // Clear canvas
-            canvasContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
-
-            // Draw waveform based on canvas size
-            const barWidth = visualizerCanvas.width / bufferLength; // Scale to canvas width
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale to canvas height
-                canvasContext.fillStyle = `rgb(${barHeight}, 100, 150)`;
-                canvasContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
-                x += barWidth;
-            }
-        }
-
-        draw(); // Start visualizing
-    }
-
-
-function resizeCanvas() {
-    const wrapper = document.getElementById('cd_wrapper');
-    const canvas = document.getElementById('visualizerCanvas');
-
-    // Match canvas size to wrapper size
-    canvas.width = wrapper.offsetWidth;
-    canvas.height = wrapper.offsetHeight;
-}
-
-// Call resizeCanvas on page load
-window.addEventListener('load', resizeCanvas);
-
-// Update canvas size on window resize
-window.addEventListener('resize', resizeCanvas);
-
 
     // Map tempo slider value to playback rate
     function mapTempoToPlaybackRate(tempo) {
@@ -208,81 +219,63 @@ window.addEventListener('resize', resizeCanvas);
         const maxTempo = 2.0;
         return Math.max(minTempo, Math.min(maxTempo, tempo / sliderMiddle));
     }
-    
+
+    // Web Audio Api AudioEffects
     function setupAudioEffects() {
         const audioContext = Howler.ctx;
     
-        // Create a low-pass filter
+        // Create low-pass filter
         lowPassFilter = audioContext.createBiquadFilter();
         lowPassFilter.type = 'lowpass';
-        lowPassFilter.frequency.value = 1000;
+        lowPassFilter.frequency.value = filterSlider.value;  // Set frequency based on slider value
     
-        // Create analyser node for audio visualization
+        // Create analyser node for visualization
         analyserNode = audioContext.createAnalyser();
-        analyserNode.fftSize = 256; // Defines the resolution of frequency data
+        analyserNode.fftSize = 256;
     
-        // Create a ConvolverNode for the reverb effect
+        // Create a ConvolverNode for reverb
         convolverNode = audioContext.createConvolver();
     
-        // Create a WaveShaperNode for distortion
-        const distortionNode = audioContext.createWaveShaper();
-        distortionNode.curve = makeDistortionCurve(0);  // Amount of distortion
-        distortionNode.oversample = '1x';
+        // Create GainNode to control volume
+        gainNode = audioContext.createGain();
+        gainNode.gain.value = volumeSlider.value; // Set initial volume based on slider value
     
-        distortionSlider.addEventListener('input', () => {
-            const distortionAmount = parseInt(distortionSlider.value, 10);
-            distortionNode.curve = makeDistortionCurve(distortionAmount);  // Update distortion curve
-            console.log(`Distortion amount set to: ${distortionAmount}`);
+        // Update gain value based on volume slider
+        volumeSlider.addEventListener('input', () => {
+            gainNode.gain.value = volumeSlider.value;
+            console.log(`Volume set to: ${gainNode.gain.value}`);
         });
     
-        // Load and set the impulse response (IR) for the reverb effect
+        // Load reverb IR and set up effects chain
         loadReverbIR('audio/ir.wav').then((irBuffer) => {
             convolverNode.buffer = irBuffer;
-            convolverNode.normalize = true;  // Normalize the impulse response
+            convolverNode.normalize = true;
     
-            // Create gain nodes for dry and wet signals
+            // Create dry and wet gain nodes for reverb signal
             dryGainNode = audioContext.createGain();
             dryGainNode.gain.value = 1;  // Dry signal at full volume
     
             wetGainNode = audioContext.createGain();
             wetGainNode.gain.value = 0.5;  // Wet signal (reverb) at 50%
     
-            // Connect the source node (Howler's internal sound node) to the low-pass filter
             const sourceNode = sound._sounds[0]._node;
-            sourceNode.connect(lowPassFilter);
-            lowPassFilter.connect(analyserNode);  // Connect to analyserNode for visualization
+            sourceNode.connect(gainNode);
+            gainNode.connect(lowPassFilter);
+    
+            // Connect nodes in audio effects chain
+            lowPassFilter.connect(analyserNode);
             analyserNode.connect(audioContext.destination);
     
-            // Connect the dry signal path (original audio without any effects)
             lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
-    
-            // Connect the reverb (wet) signal path
             lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(audioContext.destination);
     
-            // Connect the distortion effect path
-            lowPassFilter.connect(distortionNode).connect(wetGainNode).connect(audioContext.destination);
-    
-            // No PannerNode, just keep the effects chain intact
-    
-            // Start the visualizer
             visualizeAudio();
         }).catch((error) => {
             console.error('Error loading the reverb IR:', error);
         });
     }
-    
-    
-    // Helper function to create the distortion curve
-    function makeDistortionCurve(amount) {
-        const curve = new Float32Array(44100);
-        const deg = Math.PI / 2;
-        for (let i = 0; i < 44100; i++) {
-            curve[i] = Math.sin(deg * amount * i / 44100);
-        }
-        return curve;
-    }
-    
-    // Load the impulse response (IR) for reverb from a URL
+
+    // Load Reverb File
     async function loadReverbIR(url) {
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
