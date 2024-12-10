@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const playbackRate = mapTempoToPlaybackRate(tempo);
 
             // Process the audio file with the applied tempo and effects
-            const processedBlob = await processAudioForDownload(fileUrl, playbackRate);
+            const processedBlob = await processAudioForDownload(fileURL, playbackRate);
 
             // Generate a downloadable file
             const downloadFileName = `edited_${originalFileName}`;
