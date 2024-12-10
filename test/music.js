@@ -340,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressInterval = null;
         }
     }
-    //clcick handler to download the audio file
+    //click handler to download the audio file
     downloadImg.addEventListener('click', async () => {
         //check if the file is valid and has been uploaded
         if (!selectedFile) {
@@ -353,141 +353,163 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             //create new variable to change the speed
             const tempo = parseFloat(tempoSlider.value);
-            //use helper function to map tempo value to
+            //use helper function to map tempo value to playback rate
             const playbackRate = mapTempoToPlaybackRate(tempo);
 
-            // Process the audio file with the applied tempo and effects
-            const processedBlob = await processAudioForDownload(fileURL, playbackRate); // Process audio for download
-    
-            // Generate a downloadable file
-            const downloadFileName = `edited_${originalFileName}`; // Create a new file name for download
-            downloadBlob(processedBlob, downloadFileName); // Trigger file download.
-        } catch (error) { // Handle errors
-            console.error('Error downloading file:', error); // Log the error.
-            alert('Failed to download the file. Please try again.'); // Show an alert.
+            // process the audio file with the applied tempo and effects
+            const processedBlob = await processAudioForDownload(fileURL, playbackRate);
+
+            // create new variable to store file name of audio file
+            const downloadFileName = `edited_${originalFileName}`;
+            //trigger download of the processed audio Blob using a helper function
+            downloadBlob(processedBlob, downloadFileName);
+        } catch (error) {
+            //log the error to the console for debugging purposes
+            console.error('Error downloading file:', error);
+            //alert user that the downloadd did not work
+            alert('Failed to download the file. Please try again.');
         }
     });
-    
-    async function processAudioForDownload(url, playbackRate) { // function to processaudio into download file
-        // Fetch original file
-    
+    //new asynchronous function to process audio for downloading
+    async function processAudioForDownload(url, playbackRate) {
+        // get original audio file from url
         const response = await fetch(url);
+        //create arraybuffer to retrieve audio data
         const arrayBuffer = await response.arrayBuffer();
 
-        // Get current slider values
+        // get current slider value for tempo and calculate playback rate from that slider value
         const tempo = parseFloat(tempoSlider.value);
+        //map tempo to playback rate using helper function
         const playbackRateAdjusted = mapTempoToPlaybackRate(tempo);
-
+        // get reverb mix and filter frequency values from sliders or set default values
+        //get reverb mix or default to 0.5
         const reverbMix = reverbMixSlider ? parseFloat(reverbMixSlider.value) : 0.5;
+        //get filter frequency or default to 1000 Hz
         const filterFreq = filterSlider ? parseFloat(filterSlider.value) : 1000;
 
+        // create an AudioContext for audio processing
         const audioContext = new AudioContext();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        // Create an OfflineAudioContext to render the processed audio
+        // create an offlineContext variable for offline rendering of the audio
         const offlineContext = new OfflineAudioContext(
+            //number of audio channels
             audioBuffer.numberOfChannels,
+            //adjust the duration based on playback rate
             audioBuffer.duration * audioBuffer.sampleRate / playbackRateAdjusted,
+            //original sample rate of the audio
             audioBuffer.sampleRate
         );
 
-        // Set up the source
+        // set up the audio source for the offline context
         const source = offlineContext.createBufferSource();
+        //create a buffer source node
         source.buffer = audioBuffer;
+        //assign the decoded audio buffer to the source
         source.playbackRate.value = playbackRateAdjusted;
 
-        // Load IR again for offline rendering
+        // fetch and decode the impulse response (IR) file for reverb
         const irArrayBuffer = await (await fetch('audio/ir.wav')).arrayBuffer();
+        //decode the IR file into an AudioBuffer
         const irBuffer = await offlineContext.decodeAudioData(irArrayBuffer);
 
-        // Create nodes in the offline context
+        // create a low-pass filter node for the offline context
+        //create a biquad filter for low-pass filtering
         const offlineLowPass = offlineContext.createBiquadFilter();
+        //set the filter type to low-pass
         offlineLowPass.type = 'lowpass';
+        // Set the cutoff frequency based on the slider value
         offlineLowPass.frequency.value = filterFreq;
+        // Create a convolver node for reverb
+        const offlineConvolver = offlineContext.createConvolver(); // Create a convolver node
+    offlineConvolver.buffer = irBuffer; // Assign the impulse response buffer to the convolver
+    offlineConvolver.normalize = true; // Enable normalization for the IR
 
-        const offlineConvolver = offlineContext.createConvolver();
-        offlineConvolver.buffer = irBuffer;
-        offlineConvolver.normalize = true;
+    // Create gain nodes for dry and wet signals
+    const offlineDryGain = offlineContext.createGain(); // Create a gain node for the dry signal
+    offlineDryGain.gain.value = 1 - reverbMix; // Set the gain based on the reverb mix
 
-        const offlineDryGain = offlineContext.createGain();
-        offlineDryGain.gain.value = 1 - reverbMix;
+    const offlineReverbGain = offlineContext.createGain(); // Create a gain node for the wet signal
+    offlineReverbGain.gain.value = reverbMix; // Set the gain based on the reverb mix
 
-        const offlineReverbGain = offlineContext.createGain();
-        offlineReverbGain.gain.value = reverbMix;
+    // Connect nodes: source -> lowPass -> dryGain + (convolver -> reverbGain)
+    source.connect(offlineLowPass); // Connect the source to the low-pass filter
+    offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination); // Connect low-pass -> dryGain -> destination
 
-        // Connect nodes: source -> lowPass -> dryGain + (convolver->reverbGain)
-        source.connect(offlineLowPass);
-        offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination);
+    offlineLowPass.connect(offlineConvolver); // Connect low-pass to the convolver
+    offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination); // Convolver -> reverbGain -> destination
 
-        offlineLowPass.connect(offlineConvolver);
-        offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination);
+    source.start(); // Start the source node to render audio
 
-        source.start();
+    // Render the processed audio buffer using the offline context
+    const renderedBuffer = await offlineContext.startRendering(); // Begin the rendering process
+    return audioBufferToBlob(renderedBuffer); // Convert the rendered buffer to a Blob and return it
+}
 
-        const renderedBuffer = await offlineContext.startRendering();
-        return audioBufferToBlob(renderedBuffer);
+// Helper function to convert an AudioBuffer to a Blob
+function audioBufferToBlob(buffer) {
+    const numOfChannels = buffer.numberOfChannels; // Get the number of audio channels
+    const length = buffer.length * numOfChannels * 2 + 44; // Calculate the total WAV file size (PCM data + header)
+    const wavBuffer = new ArrayBuffer(length); // Create a buffer for the WAV file
+    const view = new DataView(wavBuffer); // Create a DataView to manipulate the buffer
+
+    // Function to write strings into the DataView
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i)); // Write each character as an 8-bit unsigned integer
+        }
     }
 
-    function audioBufferToBlob(buffer) {
-        const numOfChannels = buffer.numberOfChannels;
-        const length = buffer.length * numOfChannels * 2 + 44;
-        const wavBuffer = new ArrayBuffer(length);
-        const view = new DataView(wavBuffer);
+    // Write WAV header
+    writeString(view, 0, 'RIFF'); // RIFF chunk descriptor
+    view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true); // File size
+    writeString(view, 8, 'WAVE'); // WAVE file format
+    writeString(view, 12, 'fmt '); // Format chunk
+    view.setUint32(16, 16, true); // Subchunk size
+    view.setUint16(20, 1, true); // Audio format (1 for PCM)
+    view.setUint16(22, numOfChannels, true); // Number of channels
+    view.setUint32(24, buffer.sampleRate, true); // Sample rate
+    view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true); // Byte rate
+    view.setUint16(32, numOfChannels * 2, true); // Block align
+    view.setUint16(34, 16, true); // Bits per sample
+    writeString(view, 36, 'data'); // Data chunk
+    view.setUint32(40, buffer.length * numOfChannels * 2, true); // Data size
 
-        function writeString(view, offset, string) {
-            for (let i = 0; i < string.length; i++) {
-                view.setUint8(offset + i, string.charCodeAt(i));
-            }
+    // Write interleaved PCM data
+    let offset = 44; // Start after the header
+    for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numOfChannels; channel++) {
+            let sample = buffer.getChannelData(channel)[i]; // Get the sample for the channel
+            sample = Math.max(-1, Math.min(1, sample)); // Clamp the sample value to [-1, 1]
+            sample = sample < 0 ? sample * 32768 : sample * 32767; // Scale to 16-bit range
+            view.setInt16(offset, sample, true); // Write the sample as a 16-bit integer
+            offset += 2; // Move to the next sample position
         }
-
-        // Write WAV header
-        writeString(view, 0, 'RIFF');
-        view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
-        writeString(view, 8, 'WAVE');
-        writeString(view, 12, 'fmt ');
-        view.setUint32(16, 16, true);
-        view.setUint16(20, 1, true);
-        view.setUint16(22, numOfChannels, true);
-        view.setUint32(24, buffer.sampleRate, true);
-        view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
-        view.setUint16(32, numOfChannels * 2, true);
-        view.setUint16(34, 16, true);
-        writeString(view, 36, 'data');
-        view.setUint32(40, buffer.length * numOfChannels * 2, true);
-
-        // Write interleaved PCM data
-        let offset = 44;
-        for (let i = 0; i < buffer.length; i++) {
-            for (let channel = 0; channel < numOfChannels; channel++) {
-                let sample = buffer.getChannelData(channel)[i];
-                sample = Math.max(-1, Math.min(1, sample));
-                sample = sample < 0 ? sample * 32768 : sample * 32767;
-                view.setInt16(offset, sample, true);
-                offset += 2;
-            }
-        }
-
-        return new Blob([view], { type: 'audio/wav' });
     }
 
-    function downloadBlob(blob, filename) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    }
+    return new Blob([view], { type: 'audio/wav' }); // Create and return a Blob for the WAV file
+}
 
-    // Listen for changes on the filter slider to adjust the cutoff frequency live
-    filterSlider.addEventListener('input', () => {
-        if (lowPassFilter) {
-            const frequency = parseFloat(filterSlider.value);
-            lowPassFilter.frequency.value = frequency;
-            console.log('Low-pass filter frequency set to: ' + frequency + ' Hz');
-        }
-    });
+// Helper function to download a Blob as a file
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob); // Create a temporary URL for the Blob
+    const a = document.createElement('a'); // Create a hidden anchor element
+    a.style.display = 'none'; // Hide the anchor element
+    a.href = url; // Set the href to the Blob's URL
+    a.download = filename; // Set the download filename
+    document.body.appendChild(a); // Append the anchor to the document
+    a.click(); // Simulate a click to trigger the download
+    document.body.removeChild(a); // Remove the anchor after the click
+    URL.revokeObjectURL(url); // Revoke the Blob URL to free resources
+}
+
+// Listen for slider changes to adjust the filter frequency in real time
+filterSlider.addEventListener('input', () => {
+    if (lowPassFilter) { // Check if the low-pass filter exists
+        const frequency = parseFloat(filterSlider.value); // Get the slider value as a number
+        lowPassFilter.frequency.value = frequency; // Update the filter's cutoff frequency
+        console.log('Low-pass filter frequency set to: ' + frequency + ' Hz'); // Log the new frequency
+    }
 });
+});
+
