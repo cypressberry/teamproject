@@ -162,8 +162,13 @@ canvas{
   max-width: 300px;
     height: auto;
     margin-bottom: 20px; /* Add space below the CD image */
-    transition: transform 0.5s ease-in-out; /* Smooth transition */
+    animation: spin 3s linear infinite;
+    animation-play-state: paused; /* Default to paused */
     z-index: 1; /* Ensure the CD image is in front of the visualizer */
+}
+
+#cd_img.spin {
+    animation-play-state: running; /* Run when the spin class is added */
 }
 
 #cd_div {

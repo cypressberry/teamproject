@@ -81,13 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
             
             sound.pause();
             playPauseButton.textContent = 'Play';
-            cdImg.classList.remove('spin');
+            cdImg.style.animationPlayState = 'paused'; // Resume animation
             
         } else {
             if (!sound.playing()) {
                 sound.play();
                 playPauseButton.textContent = 'Pause';
-                cdImg.classList.add('spin');
+                cdImg.style.animationPlayState = 'running'; // Resume animation
             }
         }
     });
@@ -125,6 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dryGainNode.gain.value = 1 - mix;  // Dry path volume
         wetGainNode.gain.value = mix;      // Wet path volume (reverb)
         console.log(`Reverb mix set to: ${mix}`);
+    });
+
+    volumeSlider.addEventListener('input', () => {
+        const volume = parseFloat(volumeSlider.value); // Get the slider value
+        if (wetGainNode && dryGainNode) {
+            wetGainNode.gain.value = volume; // Set wet gain
+            dryGainNode.gain.value = 1 - volume; // Set dry gain to complement wet gain
+            console.log(`Wet gain: ${volume}, Dry gain: ${1 - volume}`);
+        }
     });
 
     // Set up both canvases
@@ -227,54 +236,57 @@ document.addEventListener('DOMContentLoaded', () => {
         // Create low-pass filter
         lowPassFilter = audioContext.createBiquadFilter();
         lowPassFilter.type = 'lowpass';
-        lowPassFilter.frequency.value = filterSlider.value;  // Set frequency based on slider value
+        lowPassFilter.frequency.value = parseFloat(filterSlider.value) || 1000;
     
-        // Create analyser node for visualization
+        // Create analyser node
         analyserNode = audioContext.createAnalyser();
         analyserNode.fftSize = 256;
     
-        // Create a ConvolverNode for reverb
-        convolverNode = audioContext.createConvolver();
+        // Create ConvolverNode for reverb
+        const convolverNode = audioContext.createConvolver();
     
-        // Create GainNode to control volume
-        gainNode = audioContext.createGain();
-        gainNode.gain.value = volumeSlider.value; // Set initial volume based on slider value
+        // Create dry and wet gain nodes
+        dryGainNode = audioContext.createGain();
+        dryGainNode.gain.value = 1.0; // Full dry signal by default
     
-        // Update gain value based on volume slider
-        volumeSlider.addEventListener('input', () => {
-            gainNode.gain.value = volumeSlider.value;
-            console.log(`Volume set to: ${gainNode.gain.value}`);
-        });
+        wetGainNode = audioContext.createGain();
+        wetGainNode.gain.value = parseFloat(volumeSlider.value) || 0.5; // Set initial wet signal gain based on slider
     
-        // Load reverb IR and set up effects chain
+        // Create master gain node to control overall output volume
+        const masterGainNode = audioContext.createGain();
+        masterGainNode.gain.value = 0.8; // Set a safe default volume to avoid peaking
+    
+        // Optionally add a compressor for limiting peaks
+        const compressorNode = audioContext.createDynamicsCompressor();
+        compressorNode.threshold.value = -10; // Threshold for compression (adjust as needed)
+        compressorNode.knee.value = 10; // Smooth compression curve
+        compressorNode.ratio.value = 20; // Compression ratio
+        compressorNode.attack.value = 0.003; // Fast attack
+        compressorNode.release.value = 0.25; // Smooth release
+    
+        // Load impulse response for reverb
         loadReverbIR('audio/ir.wav').then((irBuffer) => {
             convolverNode.buffer = irBuffer;
-            convolverNode.normalize = true;
-    
-            // Create dry and wet gain nodes for reverb signal
-            dryGainNode = audioContext.createGain();
-            dryGainNode.gain.value = 1;  // Dry signal at full volume
-    
-            wetGainNode = audioContext.createGain();
-            wetGainNode.gain.value = 0.5;  // Wet signal (reverb) at 50%
     
             const sourceNode = sound._sounds[0]._node;
-            sourceNode.connect(gainNode);
-            gainNode.connect(lowPassFilter);
     
-            // Connect nodes in audio effects chain
-            lowPassFilter.connect(analyserNode);
-            analyserNode.connect(audioContext.destination);
+            // Connect the audio nodes
+            sourceNode.connect(lowPassFilter);
+            lowPassFilter.connect(dryGainNode).connect(masterGainNode);  // Dry signal through master gain
+            lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(masterGainNode); // Wet signal through master gain
     
-            lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
-            lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(audioContext.destination);
+            // Apply compressor after master gain
+            masterGainNode.connect(compressorNode);
+            compressorNode.connect(audioContext.destination);
     
+            // Also connect to analyser node for visualization
+            lowPassFilter.connect(analyserNode); // For visualization
+    
+            // Start visualization
             visualizeAudio();
-        }).catch((error) => {
-            console.error('Error loading the reverb IR:', error);
-        });
+        }).catch((error) => console.error('Error loading reverb IR:', error));
     }
-
+    
     // Load Reverb File
     async function loadReverbIR(url) {
         const response = await fetch(url);
@@ -307,6 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
             progressInterval = null;
         }
     }
-    // Listen for changes on the filter slider to adjust the cutoff frequency live
+    
    
 });
