@@ -51,67 +51,67 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', async (event) => { // Event listener for when a file is selected from the file input
         const file = event.target.files[0]; //Get first selected file
         if (file) { //if file exists
-            selectedFile = file; //
-            fileURL = URL.createObjectURL(file);
-            originalFileName = file.name;
+            selectedFile = file; //populate selected file reference
+            fileURL = URL.createObjectURL(file); //create url for the file
+            originalFileName = file.name; //store the og file name
 
-            const uploadText = document.getElementById('upload_text');
-            uploadText.style.transform = 'translate(1px, 5px)';
+            const uploadText = document.getElementById('upload_text');  //Update upload text element
+            uploadText.style.transform = 'translate(1px, 5px)'; //Move upload text element to make room
 
             tempoSlider.value = sliderMiddle; // Reset slider to normal speed
 
             try {
-                loadAndPlayAudio(fileURL, file.name);
+                loadAndPlayAudio(fileURL, file.name);   //Try to load and play the audio for the file url and name
 
                 // Reset progress bar
-                progressSlider.max = 100;
-                progressSlider.value = 0;
+                progressSlider.max = 100; //reset top bound
+                progressSlider.value = 0; //reset low bound
 
-                fileNameDisplay.textContent = `Selected file: ${file.name}`;
-                fileNameDisplay.style.display = 'block';
+                fileNameDisplay.textContent = `Selected file: ${file.name}`; //Display file name
+                fileNameDisplay.style.display = 'block'; //Display style should be set to block
             }
-            catch (error) {
-                console.error("Error loading audio file:", error);
-                alert("Failed to load audio. Please try again.");
+            catch (error) { //In case of error
+                console.error("Error loading audio file:", error); //Push error to console log
+                alert("Failed to load audio. Please try again."); //Alert user of error
             }
         }
         else {
-            fileNameDisplay.textContent = 'No file selected';
-            fileNameDisplay.style.display = 'none';
+            fileNameDisplay.textContent = 'No file selected'; //No file exists case
+            fileNameDisplay.style.display = 'none'; //Don't display the name
         }
     });
 
-    async function loadReverbIR(url) {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        return audioContext.decodeAudioData(arrayBuffer);
+    async function loadReverbIR(url) { //load our IR file aynchronously
+        const response = await fetch(url); //Fetch the IR file
+        const arrayBuffer = await response.arrayBuffer();　//Convert to array buffer
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)(); //Check if window.audioContext exists, fallback to webkit audio context
+        return audioContext.decodeAudioData(arrayBuffer);   //Decode audio data
     }
 
-    function createLowPassFilter(audioContext) {
-        const filter = audioContext.createBiquadFilter();
-        filter.type = 'lowpass';
+    function createLowPassFilter(audioContext) { //Create and configure low pass filter node
+        const filter = audioContext.createBiquadFilter(); //create biquad filter
+        filter.type = 'lowpass'; //Set filter type
         filter.frequency.value = 1000; // Initial cutoff frequency in Hz
-        return filter;
+        return filter; //return the configured filter object
     }
 
-    function setupAudioContext(audioContext) {
-        lowPassFilter = audioContext.createBiquadFilter();
-        lowPassFilter.type = 'lowpass';
+    function setupAudioContext(audioContext) {  //Setup the audio context and nodes for processing audio effects
+        lowPassFilter = audioContext.createBiquadFilter(); //Create another biquad filter
+        lowPassFilter.type = 'lowpass'; //set to lowpass again
         lowPassFilter.frequency.value = parseFloat(filterSlider.min); // Start at min (normal state)
 
-        dryGainNode = audioContext.createGain();
+        dryGainNode = audioContext.createGain(); //initalize the dry gain node (unedited gain)
         dryGainNode.gain.value = 1; // Start fully dry
 
-        reverbGainNode = audioContext.createGain();
+        reverbGainNode = audioContext.createGain(); //Create the full gain node (max gain)
         reverbGainNode.gain.value = 0; // Start no reverb (fully dry)
     }
-    function setupVisualizer() {
-        // Create an AudioContext (if not already created)
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    function setupVisualizer() {    //We didn't end up keeping this, it broke everything, not enough time to remove it without breaking stuff either
+        // Create another AudioContext
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();  //Same check for existence of audiocontext and fallback
         
         // Create an analyser node
-        analyserNode = audioContext.createAnalyser();
+        analyserNode = audioContext.createAnalyser();  //Initialize analyzer node frm webaudio api
         analyserNode.fftSize = 256;  // Sets the number of frequency bins (controls the resolution)
     
         // Connect the Howler sound node to the analyser
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear the canvas for the next frame
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     
-            const barWidth = (canvas.width / bufferLength) * 2.5;
+            const barWidth = (canvas.width / bufferLength) * 2.5; 
             let barHeight;
             let x = 0;
     
