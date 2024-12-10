@@ -1,11 +1,14 @@
-/* PAGE HEADING */
+/* main HEADING styling - changing font */
 #main-heading {
+    /* choose font */
     font-family:'Pixelify Sans'
 }
 
-/* PAGE HEADING */
+/* page HEADING styling - changing font */
 .main-heading {
+   /* choose font */
   font-family: "Pixelify Sans", sans-serif;
+   /* choose color text */
   color: white;
   letter-spacing: 3px;
   font-optical-sizing: auto;

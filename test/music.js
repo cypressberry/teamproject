@@ -312,36 +312,50 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Brightness: ${brightness}, Contrast: ${contrast}`); // log the new filter values
     }
     
-    function startProgressInterval() { // start the interval for updating the progress slider
-        if (progressInterval) clearInterval(progressInterval); // clear any existing interval
-    
-        const duration = sound.duration(); // get the sound duration
-        progressSlider.max = duration; // set the slider's max value to the duration
-    
-        progressInterval = setInterval(() => { // update progress slider every 500ms
-            if (sound && sound.playing()) { // check if the sound is playing
-                progressSlider.value = sound.seek(); // update the slider's value to the current position
+    //create new function to start progress
+    function startProgressInterval() {
+        //if statement to check if there is a current interval
+        if (progressInterval) clearInterval(progressInterval);
+        //create new variable to store how long a file is 
+        const duration = sound.duration();
+        //set the progress slider's max duration to the new duration 
+        progressSlider.max = duration;
+        // start a new interval to update the progress slider every 500 milliseconds
+        progressInterval = setInterval(() => {
+            // check if the file exists and is currently playing
+            if (sound && sound.playing()) {
+                // update the slider's current value to match the current playback position of the audio file
+                progressSlider.value = sound.seek();
             }
-        }, 500); //(500ms)
+            //repeat this every 0.5 seconds
+        }, 500);
     }
-    
-    function stopProgressInterval() { // stop the progress interval
-        if (progressInterval) { // If an interval exists
-            clearInterval(progressInterval); // clear the interval
-            progressInterval = null; // reset the interval variable
+    //new function to stop the audio file
+    function stopProgressInterval() {
+        // check if there is an valid file playing
+        if (progressInterval) {
+            // if the audio file is currently playing, stop it
+            clearInterval(progressInterval);
+            //set to null to indicate that it has stopped
+            progressInterval = null;
         }
     }
-    
-    downloadImg.addEventListener('click', async () => { // Handle the download button click event
-        if (!selectedFile) { // If no file is selected
-            alert('Please upload a file before downloading.'); // Show error if it didnt work
+    //clcick handler to download the audio file
+    downloadImg.addEventListener('click', async () => {
+        //check if the file is valid and has been uploaded
+        if (!selectedFile) {
+            //notify user that they have not uploaded a file
+            alert('Please upload a file before downloading.');
+            //return
             return;
         }
-    
+        //handle errors
         try {
-            const tempo = parseFloat(tempoSlider.value); // Get the current tempo value
-            const playbackRate = mapTempoToPlaybackRate(tempo); // Map tempo to playback rate and store it in playbackRate
-    
+            //create new variable to change the speed
+            const tempo = parseFloat(tempoSlider.value);
+            //use helper function to map tempo value to
+            const playbackRate = mapTempoToPlaybackRate(tempo);
+
             // Process the audio file with the applied tempo and effects
             const processedBlob = await processAudioForDownload(fileURL, playbackRate); // Process audio for download
     
