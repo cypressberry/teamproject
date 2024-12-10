@@ -127,17 +127,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`Reverb mix set to: ${mix}`);
     });
 
-    // Volume Slider Control for Wet Gain Node
     volumeSlider.addEventListener('input', () => {
         const volume = parseFloat(volumeSlider.value); // Get the slider value
-        if (wetGainNode) {
-            wetGainNode.gain.value = volume; // Set wet signal gain
-            console.log(`Wet gain set to: ${volume}`);
-        } else {
-            console.warn('wetGainNode is not initialized.');
+        if (wetGainNode && dryGainNode) {
+            wetGainNode.gain.value = volume; // Set wet gain
+            dryGainNode.gain.value = 1 - volume; // Set dry gain to complement wet gain
+            console.log(`Wet gain: ${volume}, Dry gain: ${1 - volume}`);
         }
     });
-
 
     // Set up both canvases
     function setupCanvases() {
@@ -255,16 +252,34 @@ document.addEventListener('DOMContentLoaded', () => {
         wetGainNode = audioContext.createGain();
         wetGainNode.gain.value = parseFloat(volumeSlider.value) || 0.5; // Set initial wet signal gain based on slider
     
+        // Create master gain node to control overall output volume
+        const masterGainNode = audioContext.createGain();
+        masterGainNode.gain.value = 0.8; // Set a safe default volume to avoid peaking
+    
+        // Optionally add a compressor for limiting peaks
+        const compressorNode = audioContext.createDynamicsCompressor();
+        compressorNode.threshold.value = -10; // Threshold for compression (adjust as needed)
+        compressorNode.knee.value = 10; // Smooth compression curve
+        compressorNode.ratio.value = 20; // Compression ratio
+        compressorNode.attack.value = 0.003; // Fast attack
+        compressorNode.release.value = 0.25; // Smooth release
+    
         // Load impulse response for reverb
         loadReverbIR('audio/ir.wav').then((irBuffer) => {
             convolverNode.buffer = irBuffer;
     
             const sourceNode = sound._sounds[0]._node;
     
-            // Connect nodes
+            // Connect the audio nodes
             sourceNode.connect(lowPassFilter);
-            lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
-            lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(audioContext.destination);
+            lowPassFilter.connect(dryGainNode).connect(masterGainNode);  // Dry signal through master gain
+            lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(masterGainNode); // Wet signal through master gain
+    
+            // Apply compressor after master gain
+            masterGainNode.connect(compressorNode);
+            compressorNode.connect(audioContext.destination);
+    
+            // Also connect to analyser node for visualization
             lowPassFilter.connect(analyserNode); // For visualization
     
             // Start visualization
