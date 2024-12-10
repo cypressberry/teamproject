@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function()
 {
+    var analyserNode = null;
     var sound = null;
     var fileURL = null;
     var progressInterval = null;
@@ -82,6 +83,13 @@ document.addEventListener('DOMContentLoaded', function()
         var audioContext = Howler.ctx;
         return audioContext.decodeAudioData(arrayBuffer);
     }
+    
+    window.addEventListener('resize', () => {
+        visualizerCanvas.width = window.innerWidth / 2;
+        visualizerCanvas.height = window.innerHeight;
+        mirroredCanvas.width = window.innerWidth / 2;
+        mirroredCanvas.height = window.innerHeight;
+    });
 
     function createLowPassFilter(audioContext)
     {
@@ -95,47 +103,48 @@ document.addEventListener('DOMContentLoaded', function()
         const { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext } = setupCanvases();
     
         const bufferLength = analyserNode.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
+        const frequencyData = new Uint8Array(bufferLength);
     
-        const visibleBars = Math.floor(bufferLength / 1.25); // Adjust this number for fewer/wider bars
-        const barWidth = visualizerCanvas.width / visibleBars; // Calculate bar width
+        console.log('Buffer Length:', bufferLength);
+    
+        const visibleBars = Math.floor(bufferLength / 1.25);
+        const barWidth = visualizerCanvas.width / visibleBars;
     
         function draw() {
             requestAnimationFrame(draw);
+            analyserNode.getByteFrequencyData(frequencyData);
     
-            analyserNode.getByteFrequencyData(dataArray);
+            // Debug: Check if data is populated
+            if (frequencyData.every(value => value === 0)) {
+                console.log("Frequency data is all zero");
+            }
+       
     
-            // Clear both canvases
             visualizerContext.clearRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
             mirroredContext.clearRect(0, 0, mirroredCanvas.width, mirroredCanvas.height);
-    
-            // Draw bars on visualizerCanvas (left)
+          
             let x = 0;
             for (let i = 0; i < visibleBars; i++) {
-                const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale height
+                const barHeight = frequencyData[i] * (visualizerCanvas.height / 255) * 2;  // Multiplied by 2 for visibility
                 visualizerContext.fillStyle = `rgb(50, ${barHeight / 3}, 150)`;
                 visualizerContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
                 x += barWidth;
             }
+        
     
-            // Draw mirrored bars on mirroredCanvas (right)
-            x = mirroredCanvas.width; // Start from the right
+            x = mirroredCanvas.width;
             for (let i = 0; i < visibleBars; i++) {
-                const barHeight = dataArray[i] * (mirroredCanvas.height / 255); // Scale height
+                const barHeight = frequencyData[i] * (visualizerCanvas.height / 255) * 2;  // Multiplied by 2 for visibility
                 mirroredContext.fillStyle = `rgb(50, ${barHeight / 3}, 150)`;
-                mirroredContext.fillRect(
-                    x - barWidth, 
-                    mirroredCanvas.height - barHeight, 
-                    barWidth, 
-                    barHeight
-                );
-                x -= barWidth; // Move leftward for the mirrored effect
+                mirroredContext.fillRect(x - barWidth, mirroredCanvas.height - barHeight, barWidth, barHeight);
+                x -= barWidth;
             }
         }
     
-        draw(); // Start visualization
+        draw();
     }
-
+    
+    
     // Modify setupVisualizer to call visualizeAudio
     function setupVisualizer() {
         if (!analyserNode) {
@@ -147,43 +156,42 @@ document.addEventListener('DOMContentLoaded', function()
     // Define setupCanvases function if not already defined
     function setupCanvases() {
         const visualizerCanvas = document.getElementById('visualizerCanvas');
-        const mirroredCanvas = document.createElement('canvas'); // Create mirroredCanvas dynamically
-
-        // Configure mirroredCanvas properties
-        mirroredCanvas.width = visualizerCanvas.width;
-        mirroredCanvas.height = visualizerCanvas.height;
-        mirroredCanvas.id = 'mirroredCanvas';
-        visualizerCanvas.parentElement.appendChild(mirroredCanvas); // Add to DOM
-
+        const mirroredCanvas = document.getElementById('mirroredCanvas');
+    
+        // Dynamically set the canvas size based on the window size
+        visualizerCanvas.width = window.innerWidth / 2;
+        visualizerCanvas.height = window.innerHeight;
+        mirroredCanvas.width = window.innerWidth / 2;
+        mirroredCanvas.height = window.innerHeight;
+    
         const visualizerContext = visualizerCanvas.getContext('2d');
         const mirroredContext = mirroredCanvas.getContext('2d');
-
+    
+        console.log('Canvas Sizes:', visualizerCanvas.width, visualizerCanvas.height); // Check if dimensions are correct
+        console.log('Canvas Context:', visualizerContext, mirroredContext);
+    
         return { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext };
     }
-
-    function loadAndPlayAudio(url, fileName)
-    {
+    
+    
+    function loadAndPlayAudio(url, fileName) {
         var fileExtension = fileName.split('.').pop().toLowerCase();
         var supportedFormats = ['mp3', 'ogg', 'wav'];
 
         var isSupported = false;
-        for (var i = 0; i < supportedFormats.length; i++)
-        {
-            if (fileExtension === supportedFormats[i])
-            {
+        for (var i = 0; i < supportedFormats.length; i++) {
+            if (fileExtension === supportedFormats[i]) {
                 isSupported = true;
                 break;
             }
         }
 
-        if (!isSupported)
-        {
+        if (!isSupported) {
             alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
             return;
         }
 
-        if (sound)
-        {
+        if (sound) {
             sound.stop();
             clearInterval(progressInterval);
         }
@@ -191,8 +199,7 @@ document.addEventListener('DOMContentLoaded', function()
         sound = new Howl({
             src: [url],
             format: [fileExtension],
-            onload: async function()
-            {
+            onload: async function() {
                 var audioContext = Howler.ctx;
 
                 // Create and connect the low-pass filter
@@ -236,26 +243,23 @@ document.addEventListener('DOMContentLoaded', function()
                 analyserNode.connect(audioContext.destination);
 
                 // Update reverb slider event
-                if (reverbMixSlider)
-                {
-                    reverbMixSlider.addEventListener('input', function()
-                    {
+                if (reverbMixSlider) {
+                    reverbMixSlider.addEventListener('input', function() {
                         var mix = parseFloat(reverbMixSlider.value);
                         dryGainNode.gain.value = 1 - mix;
                         reverbGainNode.gain.value = mix;
                         console.log('Reverb mix set to: ' + mix);
                     });
                 }
-
-                setupVisualizer();
+                analyserNode.fftSize = 512;  // or 1024 for more resolution
+                setupVisualizer(); // Call setupVisualizer after the analyser is ready
 
                 playPauseButton.textContent = 'Pause';
                 sound.play();
                 startProgressInterval();
                 cdImg.style.animation = "rotate 2s linear infinite";
             },
-            onend: function()
-            {
+            onend: function() {
                 playPauseButton.textContent = 'Play';
                 stopProgressInterval();
                 cdImg.style.animation = "none";

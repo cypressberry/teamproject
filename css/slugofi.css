@@ -49,7 +49,152 @@ body::before {
 }
 
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #1c1c1c;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+}
+
+#cd_wrapper {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    display: flex;
+    justify-content: space-between;
+}
+
+
+
+h1.main-heading {
+    font-size: 3rem;
+    margin: 20px;
+}
+
+#files_div {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin: 20px 0;
+    z-index: 1;
+    position: relative;
+}
+
+.file-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#upload_img, #download_img {
+    width: 80px;
+    height: 80px;
+}
+
+#upload_text, #download_text {
+    font-size: 1.2rem;
+    margin-top: 10px;
+}
+
+#cd_div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+    position: relative;
+}
+
+#cd_img {
+    width: 200px;
+    margin-bottom: 20px;
+}
+
+input[type="range"] {
+    margin: 10px 0;
+    width: 80%;
+}
+
+#controls {
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+    position: relative;
+    margin-top: 20px;
+}
+
+button {
+    background-color: #ff5733;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #e04e2f;
+}
+
+#progressSlider {
+    margin-top: 10px;
+    width: 80%;
+}
+
+
+#cd_wrapper {
+    display: flex;
+    width: 100%;
+    height: 100%; /* Make the wrapper full height */
+}
+#visualizerCanvas, #mirroredCanvas {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    z-index: -1; /* Puts them in the background */
+}
+    #visualizerCanvas {
+        left: 0;  /* Position on the left side */
+    }
+
+    #mirroredCanvas {
+        right: 0;  /* Position on the right side */
+    }
+
+    /* Make sure interactive elements stay above the canvas */
+    #files_div,
+    #cd_wrapper,
+    #cd_div,
+    #controls {
+        position: relative;  /* Keep them in the normal flow */
+        z-index: 1;  /* Ensure they stay above the canvases */
+    }
+
+    /* Ensure other elements aren't affected */
+    body {
+        margin: 0; /* Remove default margin */
+        padding: 0; /* Remove default padding */
+        position: relative; /* Allow stacking context to work correctly */
+        height: 100vh; /* Full viewport height */
+    }
+/* Make sure interactive elements (like the buttons and sliders) are on top */
+#files_div,
+#cd_wrapper,
+#cd_div,
+#controls {
+    position: relative;  /* Ensure these elements remain in the normal flow with higher stacking context */
+    z-index: 1;  /* Keep them above the canvases */
+}
 
 /* body::before {
     content: '';
@@ -167,17 +312,7 @@ body::before {
     color: white;
     letter-spacing: 2px;
 }
-/* Center the CD wrapper container */
-#cd_wrapper{
-    display: flex;
-    width: 100%;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: -1; /* Ensure the canvases are in the background */
-}
+s
 
 canvas{
     display:block;
