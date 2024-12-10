@@ -1,4 +1,3 @@
-
 /* PAGE HEADING */
 #main-heading {
     font-family:'Pixelify Sans'
@@ -17,200 +16,30 @@
 
 }
 
-html, body {
-    height: 100%; /* Ensure both html and body stretch to full height */
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
-}
-
 body {
-    position: relative;
-    z-index: 0;
-    overflow-x: hidden; /* Prevent horizontal overflow */
-    overflow-y: auto; /* Allow vertical scrolling */
-}
-
-/* Add pseudo-element for background image */
-body::before {
-    content: '';
-    position: fixed; /* Position the pseudo-element fixed to the viewport */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url('../img/background.png');
-    background-size: cover; /* Ensure the background covers the viewport */
-    background-repeat: no-repeat; /* Avoid repeating the background */
-    background-position: center; /* Center the image */
-    z-index: -1; /* Put the background behind content */
-    filter: brightness(1) contrast(1); /* Apply brightness and contrast effects */
-    transition: filter 0.3s ease; /* Smooth transition for any changes to filter */
-    height: 100%; /* Ensure the pseudo-element takes full height */
-}
-
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #1c1c1c;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh;
-}
-
-#cd_wrapper {
-    position: relative;
-    width: 100%;
-    height: 50%;
-    display: flex;
-    justify-content: space-between;
-}
-
-
-
-h1.main-heading {
-    font-size: 3rem;
-    margin: 20px;
-}
-
-#files_div {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin: 20px 0;
-    z-index: 1;
-    position: relative;
-}
-
-.file-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#upload_img, #download_img {
-    width: 80px;
-    height: 80px;
-}
-
-#upload_text, #download_text {
-    font-size: 1.2rem;
-    margin-top: 10px;
-}
-
-#cd_div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    z-index: 1;
-    position: relative;
-}
-
-#cd_img {
-    width: 200px;
-    margin-bottom: 20px;
-}
-
-input[type="range"] {
-    margin: 10px 0;
-    width: 80%;
-}
-
-#controls {
-    display: flex;
-    justify-content: center;
-    z-index: 1;
-    position: relative;
-    margin-top: 20px;
-}
-
-button {
-    background-color: #ff5733;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    font-size: 1rem;
-    cursor: pointer;
-    margin-top: 10px;
-}
-
-button:hover {
-    background-color: #e04e2f;
-}
-
-#progressSlider {
-    margin-top: 10px;
-    width: 80%;
-}
-
-
-#cd_wrapper {
-    display: flex;
-    width: 100%;
-    height: 100%; /* Make the wrapper full height */
-}
-#visualizerCanvas, #mirroredCanvas {
-    position: absolute;
-    width: 50%;
-    height: 100%;
-    z-index: -1; /* Puts them in the background */
-}
-    #visualizerCanvas {
-        left: 0;  /* Position on the left side */
-    }
-
-    #mirroredCanvas {
-        right: 0;  /* Position on the right side */
-    }
-
-    /* Make sure interactive elements stay above the canvas */
-    #files_div,
-    #cd_wrapper,
-    #cd_div,
-    #controls {
-        position: relative;  /* Keep them in the normal flow */
-        z-index: 1;  /* Ensure they stay above the canvases */
-    }
-
-    /* Ensure other elements aren't affected */
-    body {
-        margin: 0; /* Remove default margin */
-        padding: 0; /* Remove default padding */
-        position: relative; /* Allow stacking context to work correctly */
-        height: 100vh; /* Full viewport height */
-    }
-/* Make sure interactive elements (like the buttons and sliders) are on top */
-#files_div,
-#cd_wrapper,
-#cd_div,
-#controls {
-    position: relative;  /* Ensure these elements remain in the normal flow with higher stacking context */
-    z-index: 1;  /* Keep them above the canvases */
-}
-
-/* body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url('../img/background.png'); 
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
-    z-index: -1; 
-    filter: brightness(1) contrast(1);
-    transition: filter 0.3s ease; 
-} */
+    margin-top: -25px;
+}
+
+body::before {
+    content: ''; /* Necessary for pseudo-elements */
+    position: fixed; /* Covers the entire viewport */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw; /* Full viewport width */
+    height: 100vh; /* Full viewport height */
+    background-image: url('../img/background.png');
+    background-size: cover; /* Ensures the image covers the whole area */
+    background-repeat: no-repeat; /* Prevents tiling */
+    background-position: center; /* Centers the image */
+    z-index: -1; /* Places it behind other content */
+    filter: brightness(var(--brightness, 1)) contrast(var(--contrast, 1)); /* Use CSS variables */
+    transition: filter 0.3s ease; /* Smooth transition for filter changes */
+}
 
 /* FILE UPLOAD AND DOWNLOAD SECTION*/
 #files_div {
@@ -268,6 +97,11 @@ button:hover {
     box-sizing: border-box;
 }
 
+#cd_img {
+    max-width: 300px;
+    height: auto;
+    margin-bottom: 20px; /* Add space below the CD image */
+}
 
 @keyframes rotate {
     from {
@@ -292,45 +126,12 @@ button:hover {
 #speed_slider {
 
 }
-
-.spin {
-    animation: spin 2s linear infinite; /* Spin forever */
-}
-
-/* Define the spinning animation */
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 #speed_text {
     font-family: "Pixelify Sans", sans-serif;
     color: white;
     letter-spacing: 2px;
 }
-s
 
-canvas{
-    display:block;
-}
-
-/* CD Image */
-#cd_img {
-  max-width: 300px;
-    height: auto;
-    margin-bottom: 20px; /* Add space below the CD image */
-    animation: spin 3s linear infinite;
-    animation-play-state: paused; /* Default to paused */
-    z-index: 1; /* Ensure the CD image is in front of the visualizer */
-}
-
-#cd_img.spin {
-    animation-play-state: running; /* Run when the spin class is added */
-}
 
 #cd_div {
     display: flex;
@@ -371,7 +172,7 @@ canvas{
     margin-bottom: 10px; /* Adds space below the slider */
     accent-color:#DF119E;
     width: 20%;
-  
+
 }
 
 #progressSlider {
@@ -420,7 +221,9 @@ canvas{
 }
 
 #upload_img:hover {
-    filter: hue-rotate(330deg) saturate(3) brightness(1.2); /* Enhance brightness and saturation */
+    filter: hue-rotate(330deg) saturate(5) brightness(1.1) 
+            drop-shadow(0 0 20px rgba(255, 105, 180, 0.8)) /* Bright pink glow */
+            drop-shadow(0 0 40px rgba(255, 105, 180, 0.6)) /* Softer outer glow */;
     transform: scale(1.5); /* Slightly enlarge the image */
 }
 
@@ -516,8 +319,9 @@ canvas{
     transform: scale(1.3); /* Enlarge the thumb more on hover */
     box-shadow: 0 0 60px rgba(223, 17, 158, 1), 0 0 120px rgba(223, 17, 158, 0.9), 0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
 }
-/* Shared styles for sliders */
-input[type="range"] {
+
+#filterSlider,
+#reverbMixSlider {
     -webkit-appearance: none; /* Remove default appearance for WebKit browsers */
     -moz-appearance: none; /* Remove default appearance for Firefox */
     appearance: none;
@@ -526,63 +330,78 @@ input[type="range"] {
     border-radius: 5px; /* Rounded corners for track */
     outline: none; /* Remove the outline on focus */
     transition: background 0.3s ease; /* Smooth background change */
-    width: 20%; /* Adjust slider width */
-    margin: 20px auto; /* Center sliders and add spacing */
+    width: 20%; /* Adjust width to match other sliders */
+    margin-top: 10px; /* Add spacing from other elements */
+}
+
+#filterSlider{
+    margin-top: 10px;
+}
+
+#reverbMixSlider{
+    margin-top: 40px;
 }
 
 /* Thumb design for WebKit browsers */
-input[type="range"]::-webkit-slider-thumb {
+#filterSlider::-webkit-slider-thumb,
+#reverbMixSlider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 20px; /* Thumb width */
-    height: 20px; /* Thumb height */
-    background: #DF119E; /* Thumb color */
-    border-radius: 50%; /* Circular thumb */
-    border: 3px solid #FFF; /* White border for contrast */
+    width: 20px; /* Slightly larger thumb */
+    height: 20px; /* Slightly larger thumb */
+    background: #DF119E; /* Change thumb color */
+    border-radius: 50%; /* Make the thumb circular */
+    border: 3px solid #FFF; /* White border for better contrast */
     box-shadow: 
         0 0 10px rgba(223, 17, 158, 2.8), /* Inner glow */
         0 0 20px rgba(223, 17, 158, 2.6), /* Medium glow */
         0 0 30px rgba(223, 17, 158, 2.4); /* Outer glow */
-    transition: transform 0.2s ease, box-shadow 0.3s ease; 
+    transition: transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transition on interaction */
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.3); 
+#filterSlider::-webkit-slider-thumb:hover,
+#reverbMixSlider::-webkit-slider-thumb:hover {
+    transform: scale(1.3); /* Enlarge the thumb more on hover */
     box-shadow: 
         0 0 60px rgba(223, 17, 158, 1), 
         0 0 120px rgba(223, 17, 158, 0.9), 
-        0 0 180px rgba(223, 17, 158, 0.7); 
+        0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
 }
 
-
-input[type="range"]::-moz-range-thumb {
-    width: 20px; 
-    height: 20px; 
-    background: #DF119E; 
-    border-radius: 50%; 
-    border: 3px solid #FFF; 
+/* Thumb design for Firefox */
+#filterSlider::-moz-range-thumb,
+#reverbMixSlider::-moz-range-thumb {
+    width: 20px; /* Slightly larger thumb */
+    height: 20px; /* Slightly larger thumb */
+    background: #DF119E; /* Change thumb color */
+    border-radius: 50%; /* Make the thumb circular */
+    border: 3px solid #DF119E; /* White border for better contrast */
     box-shadow: 
-        0 0 10px rgba(223, 17, 158, 2.8), 
-        0 0 20px rgba(223, 17, 158, 2.6), 
-        0 0 30px rgba(223, 17, 158, 2.4); 
-    transition: transform 0.2s ease, box-shadow 0.3s ease; 
+        0 0 40px rgba(223, 17, 158, 1), 
+        0 0 80px rgba(223, 17, 158, 0.8), 
+        0 0 120px rgba(223, 17, 158, 0.6); /* Stronger layered glow effect */
+    transition: transform 0.2s ease, box-shadow 0.3s ease; /* Smooth transition on interaction */
 }
 
-input[type="range"]::-moz-range-thumb:hover {
-    transform: scale(1.3); 
+#filterSlider::-moz-range-thumb:hover,
+#reverbMixSlider::-moz-range-thumb:hover {
+    transform: scale(1.3); /* Enlarge the thumb more on hover */
     box-shadow: 
         0 0 60px rgba(223, 17, 158, 1), 
         0 0 120px rgba(223, 17, 158, 0.9), 
-        0 0 180px rgba(223, 17, 158, 0.7); 
+        0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
 }
 
-/* Specific styling for labels */
-label {
+#lowpass_text {
     font-family: "Pixelify Sans", sans-serif;
-    font-size: 18px;
     color: white;
     letter-spacing: 2px;
-    margin-bottom: 10px;
-    text-align: center;
-    display: block; 
+    margin-top: 20px; /* Adjust this value to move the text downward */
+}
+
+#reverb_text {
+    font-family: "Pixelify Sans", sans-serif;
+    color: white;
+    letter-spacing: 2px;
+    margin-top: 20px;
 }

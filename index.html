@@ -7,57 +7,59 @@
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script type="text/javascript" src="./test/music.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/howler"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <title>Slugofi</title>
+    <style>
+    </style>
 </head>
 <body>
-    <h1 class="main-heading">Slugofi</h1>
+<h1 class="main-heading">Slugofi</h1>
 
-    <div id="files_div">
-        <div class="file-wrapper">
-            <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
-            <h4 id="upload_text">upload</h4>
-            <input type="file" id="fileInput" accept=".mp3" style="display: none;" />
-        </div>
-
-        <div class="file-wrapper">
-            <img id="download_img" src="img/slugofile1.png" alt="Download" />
-            <h4 id="download_text">download</h4>
-        </div>
+<div id="files_div">
+    <div class="file-wrapper">
+        <img id="upload_img" src="img/slugofile1.png" alt="Upload" />
+        <h4 id="upload_text">upload</h4>
+        <input type="file" id="fileInput" accept=".mp3" style="display: none;" />
     </div>
-
-
-    <div id="cd_div">
-        <img id="cd_img" src="img/cd.png" alt="CD Image"/>
-        <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p>
-        
-        
-        <canvas id="visualizerCanvas" width="600" height="300"></canvas>
-        <canvas id="mirroredCanvas" width="600" height="300"></canvas>
    
-        
-        <!-- Tempo Slider -->
-        <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
-        <h4 id="speed_text">speed</h4>
-        <button id="applyEdits">apply edits</button>
-
-        <!-- Low-Pass Filter Slider -->
-        <label for="filterSlider">Low-Pass Filter Frequency:</label>
-        <input type="range" id="filterSlider" min="200" max="5000" value="500" step="100">
-
-        <!-- Reverb Mix Slider -->
-        <label for="reverbMixSlider">Reverb Mix:</label>
-        <input type="range" id="reverbMixSlider" min="0" max="0.9" step="0.05" value="0">
+    <div class="file-wrapper">
+        <img id="download_img" src="img/slugofile1.png" alt="Download" />
+        <h4 id="download_text">download</h4>
     </div>
+</div>
 
-    <div id="controls">
-        <button id="playPauseButton">Play</button>
-    </div>
+<div id="cd_div">
+    <img id="cd_img" src="img/cd.png" alt="CD Image"/>
+    <p id="fileName" style="display: none; margin-top: 10px;">No file selected</p>
 
-    <input type="range" id="progressSlider" min="0" value="0" step="0.1" style="width: 100%;"> 
+    <!-- Tempo Slider -->
+    <input id="tempo" type="range" min="0" max="3" step=".05" value="1">
+    <h4 id="speed_text">speed</h4>
+    
+
+    <!-- Low-Pass Filter Slider -->
+    <input type="range" id="filterSlider" min="100" max="5000" value="1000" step="100">
+    <label for="filterSlider" id = "lowpass_text">Low-Pass Filter Frequency</label>
+
+    <!-- Reverb Mix Slider -->
+
+    <input type="range" id="reverbMixSlider" min="0" max="1" step="0.1" value="0.5">
+    <label for="reverbMixSlider" id = "reverb_text">Reverb Mix</label>
+
+    <!-- <button id="applyEdits">apply edits</button> -->
+</div>
+
+<canvas id="visualizerCanvas" width="800" height="200"></canvas>
+
+
+<div id="controls">
+    <button id="playPauseButton">Play</button>
+</div>
+
+<input type="range" id="progressSlider" min="0" value="0" step="0.1" style="width: 100%;">
 
 </body>
 </html>
