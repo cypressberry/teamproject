@@ -164,9 +164,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
     
-        // Reduce the number of bars rendered (e.g., half the buffer length)
-        const visibleBars = Math.floor(bufferLength / 1.5); // Adjust this number for fewer/wider bars
-        const barWidth = visualizerCanvas.width / visibleBars; // Calculate wider bars
+        
+        const visibleBars = Math.floor(bufferLength/1.25); // Adjust this number for fewer/wider bars
+        const barWidth = visualizerCanvas.width / visibleBars; // Calculate bar width
     
         function draw() {
             requestAnimationFrame(draw);
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let x = 0;
             for (let i = 0; i < visibleBars; i++) {
                 const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale height
-                visualizerContext.fillStyle = `rgb(50,${barHeight}, 150)`;
+                visualizerContext.fillStyle = `rgb(50,${barHeight}/3, 150)`;
                 visualizerContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
                 x += barWidth;
             }
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             x = mirroredCanvas.width; // Start from the right
             for (let i = 0; i < visibleBars; i++) {
                 const barHeight = dataArray[i] * (mirroredCanvas.height / 255); // Scale height
-                mirroredContext.fillStyle = `rgb(50,${barHeight}, 150)`;
+                mirroredContext.fillStyle = `rgb(50,${barHeight}/3, 150)`;
                 mirroredContext.fillRect(x - barWidth, mirroredCanvas.height - barHeight, barWidth, barHeight);
                 x -= barWidth; // Move leftward for the mirrored effect
             }
@@ -199,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
         draw(); // Start visualization
     }
     
-
     // Load and play audio with Howler.js
     function loadAndPlayAudio(url, fileName) {
         if (sound) sound.stop(); // Stop previous sound
@@ -237,6 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lowPassFilter = audioContext.createBiquadFilter();
         lowPassFilter.type = 'lowpass';
         lowPassFilter.frequency.value = parseFloat(filterSlider.value) || 1000;
+        lowPassFilter.Q.value = 10; // Higher Q for a steeper slope
+
     
         // Create analyser node
         analyserNode = audioContext.createAnalyser();
