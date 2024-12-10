@@ -1,171 +1,103 @@
-document.addEventListener('DOMContentLoaded', () => {
-   
-    let sound = null;
-    let selectedFile = null;
-    let fileURL = null;
-    let lowPassFilter = null;
-    let analyserNode = null;
-    let progressInterval = null;
+document.addEventListener('DOMContentLoaded', function()
+{
+    var sound = null;
+    var fileURL = null;
+    var progressInterval = null;
+    var originalFileName = '';
+    var selectedFile = null;
+    var lowPassFilter = null;
 
-    //docugets
-    const fileInput = document.getElementById('fileInput');
-    const uploadImg = document.getElementById('upload_img');
-    const playPauseButton = document.getElementById('playPauseButton');
-    const downloadImg = document.getElementById('download_img');
-    const applyEditsButton = document.getElementById('applyEdits');
-    const progressSlider = document.getElementById('progressSlider');
-    const filterSlider = document.getElementById('filterSlider');
-    const reverbMixSlider = document.getElementById('reverbMixSlider');
-    const fileNameDisplay = document.getElementById('fileName');
-    const tempoSlider = document.getElementById('tempo');
-    const cdImg = document.getElementById('cd_img');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const sliderMiddle = 1.5;
+    var convolverNode = null;
+    var reverbGainNode = null;
+    var dryGainNode = null;
+    var analyserNode = null;
 
-     // Set initial values
-     tempoSlider.value = sliderMiddle;
-     progressSlider.value = 0;
+    var fileInput = document.getElementById('fileInput');
+    var tempoSlider = document.getElementById('tempo');
+    var uploadImg = document.getElementById('upload_img');
+    var fileNameDisplay = document.getElementById('fileName');
+    var applyEditsButton = document.getElementById('applyEdits');
+    var downloadImg = document.getElementById('download_img');
+    var playPauseButton = document.getElementById('playPauseButton');
+    var cdImg = document.getElementById("cd_img");
+    var progressSlider = document.getElementById('progressSlider');
+    var filterSlider = document.getElementById('filterSlider');
+    var reverbMixSlider = document.getElementById('reverbMixSlider');
 
-    // Trigger file input
-    uploadImg.addEventListener('click', () => fileInput.click());
-    
-    // canvases adjust size on window resize
-    window.addEventListener('resize', setupCanvases);
 
-    // resizeCanvas on page load
-    window.addEventListener('load', setupCanvases);
+    var sliderMiddle = 1.5; // Middle value of the slider corresponds to normal speed
+    tempoSlider.value = sliderMiddle;
+    progressSlider.value = 0;
 
-     //File Download
-     downloadImg.addEventListener('click', () => {
-        if (!selectedFile) {
-            alert('Please upload a file before downloading.');
-            return;
-        }
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(selectedFile);
-        a.download = `edited_${selectedFile.name}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    uploadImg.addEventListener('click', function()
+    {
+        fileInput.click();
     });
 
-     // Handle file selection and load into Howler.js 
-     fileInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
+    fileInput.addEventListener('change', function(event)
+    {
+        var file = event.target.files[0];
+        if (file)
+        {
             selectedFile = file;
             fileURL = URL.createObjectURL(file);
-            fileNameDisplay.textContent = `Selected file: ${file.name}`;
-            fileNameDisplay.style.display = 'block';
+            originalFileName = file.name;
 
-            // Load file into both Howler.js 
-            loadAndPlayAudio(fileURL, file.name);
-        } else {
+            var uploadText = document.getElementById('upload_text');
+            if (uploadText)
+            {
+                uploadText.style.transform = 'translate(1px, 5px)';
+            }
+
+            tempoSlider.value = sliderMiddle; // Reset slider to normal speed
+
+            try
+            {
+                loadAndPlayAudio(fileURL, file.name);
+
+                // Reset progress bar
+                progressSlider.max = 100;
+                progressSlider.value = 0;
+
+                fileNameDisplay.textContent = 'Selected file: ' + file.name;
+                fileNameDisplay.style.display = 'block';
+            }
+            catch (error)
+            {
+                console.error("Error loading audio file:", error);
+                alert("Failed to load audio. Please try again.");
+            }
+        }
+        else
+        {
             fileNameDisplay.textContent = 'No file selected';
             fileNameDisplay.style.display = 'none';
         }
     });
 
-    // Play/Pause Button control
-    playPauseButton.addEventListener('click', () => {
-       
-        console.log('Howler playing:', sound.playing());
-    
-        if (!sound) {
-            alert('Please upload an audio file first.');
-            return;
-        }
-    
-        if (sound.playing()) {
-            
-            sound.pause();
-            playPauseButton.textContent = 'Play';
-            cdImg.style.animationPlayState = 'paused'; // Resume animation
-            
-        } else {
-            if (!sound.playing()) {
-                sound.play();
-                playPauseButton.textContent = 'Pause';
-                cdImg.style.animationPlayState = 'running'; // Resume animation
-            }
-        }
-    });
-
-     // Progress slider control
-     progressSlider.addEventListener('input', () => {
-        if (sound) 
-        sound.seek(progressSlider.value);
-    });
-
-    // Apply edits (change playback rate)
-    applyEditsButton.addEventListener('click', () => {
-        if (sound) {
-            const tempo = parseFloat(tempoSlider.value);
-            const playbackRate = mapTempoToPlaybackRate(tempo);
-            sound.rate(playbackRate);
-            console.log(`Playback rate set to: ${playbackRate}`);
-        } else {
-            alert('Please upload an audio file first.');
-        }
-    });
-
-    // Lowpass Filter slider logic
-    filterSlider.addEventListener('input', () => {
-        if (lowPassFilter) {
-            const frequency = parseFloat(filterSlider.value);
-            lowPassFilter.frequency.value = frequency;
-            console.log(`Low-pass filter frequency set to: ${frequency} Hz`);
-        }
-    });
-
-    // Adjust reverb mix based on slider
-    reverbMixSlider.addEventListener('input', () => {
-        const mix = parseFloat(reverbMixSlider.value);
-        dryGainNode.gain.value = 1 - mix;  // Dry path volume
-        wetGainNode.gain.value = mix;      // Wet path volume (reverb)
-        console.log(`Reverb mix set to: ${mix}`);
-    });
-
-    volumeSlider.addEventListener('input', () => {
-        const volume = parseFloat(volumeSlider.value); // Get the slider value
-        if (wetGainNode && dryGainNode) {
-            wetGainNode.gain.value = volume; // Set wet gain
-            dryGainNode.gain.value = 1 - volume; // Set dry gain to complement wet gain
-            console.log(`Wet gain: ${volume}, Dry gain: ${1 - volume}`);
-        }
-    });
-
-    // Set up both canvases
-    function setupCanvases() {
-        const visualizerCanvas = document.getElementById('visualizerCanvas');
-        const mirroredCanvas = document.getElementById('mirroredCanvas');
-        const visualizerContext = visualizerCanvas.getContext('2d');
-        const mirroredContext = mirroredCanvas.getContext('2d');
-
-        // Resize canvases to occupy 50% of the screen each
-        const canvasWidth = window.innerWidth / 2;
-        const canvasHeight = window.innerHeight;
-
-        visualizerCanvas.width = canvasWidth;
-        visualizerCanvas.height = canvasHeight;
-        mirroredCanvas.width = canvasWidth;
-        mirroredCanvas.height = canvasHeight;
-        visualizerCanvas.style.opacity = 0.4;
-        mirroredCanvas.style.opacity = 0.4;
-
-        return { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext };
+    async function loadReverbIR(url)
+    {
+        var response = await fetch(url);
+        var arrayBuffer = await response.arrayBuffer();
+        var audioContext = Howler.ctx;
+        return audioContext.decodeAudioData(arrayBuffer);
     }
 
-    //Vizualisation
+    function createLowPassFilter(audioContext)
+    {
+        var filter = audioContext.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 1000; // Initial cutoff frequency in Hz
+        return filter;
+    }
+    // Add visualizeAudio function
     function visualizeAudio() {
         const { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext } = setupCanvases();
     
         const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
     
-        
-        const visibleBars = Math.floor(bufferLength/1.25); // Adjust this number for fewer/wider bars
+        const visibleBars = Math.floor(bufferLength / 1.25); // Adjust this number for fewer/wider bars
         const barWidth = visualizerCanvas.width / visibleBars; // Calculate bar width
     
         function draw() {
@@ -181,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let x = 0;
             for (let i = 0; i < visibleBars; i++) {
                 const barHeight = dataArray[i] * (visualizerCanvas.height / 255); // Scale height
-                visualizerContext.fillStyle = `rgb(50,${barHeight}/3, 150)`;
+                visualizerContext.fillStyle = `rgb(50, ${barHeight / 3}, 150)`;
                 visualizerContext.fillRect(x, visualizerCanvas.height - barHeight, barWidth, barHeight);
                 x += barWidth;
             }
@@ -190,136 +122,436 @@ document.addEventListener('DOMContentLoaded', () => {
             x = mirroredCanvas.width; // Start from the right
             for (let i = 0; i < visibleBars; i++) {
                 const barHeight = dataArray[i] * (mirroredCanvas.height / 255); // Scale height
-                mirroredContext.fillStyle = `rgb(50,${barHeight}/3, 150)`;
-                mirroredContext.fillRect(x - barWidth, mirroredCanvas.height - barHeight, barWidth, barHeight);
+                mirroredContext.fillStyle = `rgb(50, ${barHeight / 3}, 150)`;
+                mirroredContext.fillRect(
+                    x - barWidth, 
+                    mirroredCanvas.height - barHeight, 
+                    barWidth, 
+                    barHeight
+                );
                 x -= barWidth; // Move leftward for the mirrored effect
             }
         }
     
         draw(); // Start visualization
     }
-    
-    // Load and play audio with Howler.js
-    function loadAndPlayAudio(url, fileName) {
-        if (sound) sound.stop(); // Stop previous sound
+
+    // Modify setupVisualizer to call visualizeAudio
+    function setupVisualizer() {
+        if (!analyserNode) {
+            return;
+        }
+        visualizeAudio(); // Call the new visualization function
+    }
+
+    // Define setupCanvases function if not already defined
+    function setupCanvases() {
+        const visualizerCanvas = document.getElementById('visualizerCanvas');
+        const mirroredCanvas = document.createElement('canvas'); // Create mirroredCanvas dynamically
+
+        // Configure mirroredCanvas properties
+        mirroredCanvas.width = visualizerCanvas.width;
+        mirroredCanvas.height = visualizerCanvas.height;
+        mirroredCanvas.id = 'mirroredCanvas';
+        visualizerCanvas.parentElement.appendChild(mirroredCanvas); // Add to DOM
+
+        const visualizerContext = visualizerCanvas.getContext('2d');
+        const mirroredContext = mirroredCanvas.getContext('2d');
+
+        return { visualizerCanvas, mirroredCanvas, visualizerContext, mirroredContext };
+    }
+
+    function loadAndPlayAudio(url, fileName)
+    {
+        var fileExtension = fileName.split('.').pop().toLowerCase();
+        var supportedFormats = ['mp3', 'ogg', 'wav'];
+
+        var isSupported = false;
+        for (var i = 0; i < supportedFormats.length; i++)
+        {
+            if (fileExtension === supportedFormats[i])
+            {
+                isSupported = true;
+                break;
+            }
+        }
+
+        if (!isSupported)
+        {
+            alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
+            return;
+        }
+
+        if (sound)
+        {
+            sound.stop();
+            clearInterval(progressInterval);
+        }
 
         sound = new Howl({
             src: [url],
-            format: [fileName.split('.').pop().toLowerCase()],
-            onload: () => {
-                setupAudioEffects();
+            format: [fileExtension],
+            onload: async function()
+            {
+                var audioContext = Howler.ctx;
+
+                // Create and connect the low-pass filter
+                lowPassFilter = createLowPassFilter(audioContext);
+
+                // Prepare source node
+                var sourceNode = sound._sounds[0]._node;
+                sourceNode.disconnect();
+
+                // Create and load the reverb IR
+                var irBuffer = await loadReverbIR('audio/ir.wav');
+                convolverNode = audioContext.createConvolver();
+                convolverNode.buffer = irBuffer;
+                convolverNode.normalize = true;
+
+                // Create gain nodes for wet/dry mix
+                dryGainNode = audioContext.createGain();
+                dryGainNode.gain.value = 0.5;   // 50% dry
+                reverbGainNode = audioContext.createGain();
+                reverbGainNode.gain.value = 0.5; // 50% wet
+
+                // Create an analyser node here, connected after we mix dry & wet
+                analyserNode = audioContext.createAnalyser();
+                analyserNode.fftSize = 256;
+
+                // Connect the chain:
+                // Source -> LowPassFilter -> DryGainNode -> AnalyserNode -> Destination
+                //                       \-> Convolver -> ReverbGainNode -> AnalyserNode -> Destination
+                sourceNode.connect(lowPassFilter);
+                lowPassFilter.connect(dryGainNode);
+                lowPassFilter.connect(convolverNode);
+
+                // Combine dry and wet signals before going to analyser
+                dryGainNode.connect(analyserNode);
+                reverbGainNode.connect(analyserNode);
+
+                // Convolver feeds wet signal
+                convolverNode.connect(reverbGainNode);
+
+                // From analyser to destination
+                analyserNode.connect(audioContext.destination);
+
+                // Update reverb slider event
+                if (reverbMixSlider)
+                {
+                    reverbMixSlider.addEventListener('input', function()
+                    {
+                        var mix = parseFloat(reverbMixSlider.value);
+                        dryGainNode.gain.value = 1 - mix;
+                        reverbGainNode.gain.value = mix;
+                        console.log('Reverb mix set to: ' + mix);
+                    });
+                }
+
+                setupVisualizer();
+
+                playPauseButton.textContent = 'Pause';
+                sound.play();
                 startProgressInterval();
+                cdImg.style.animation = "rotate 2s linear infinite";
             },
-            onend: () => {
+            onend: function()
+            {
                 playPauseButton.textContent = 'Play';
                 stopProgressInterval();
+                cdImg.style.animation = "none";
             }
         });
-
-        sound.play();
-        playPauseButton.textContent = 'Pause';
-        cdImg.classList.add('spin');
     }
 
-    // Map tempo slider value to playback rate
-    function mapTempoToPlaybackRate(tempo) {
-        const minTempo = 0.5;
-        const maxTempo = 2.0;
-        return Math.max(minTempo, Math.min(maxTempo, tempo / sliderMiddle));
+    function mapTempoToPlaybackRate(tempo)
+    {
+        var minTempo = parseFloat(tempoSlider.min);
+        var maxTempo = parseFloat(tempoSlider.max);
+        var normalSpeed = sliderMiddle;
+
+        if (tempo === normalSpeed)
+        {
+            return 1;
+        }
+        else if (tempo > normalSpeed)
+        {
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        }
+        else
+        {
+            return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
+        }
     }
 
-    // Web Audio Api AudioEffects
-    function setupAudioEffects() {
-        const audioContext = Howler.ctx;
-    
-        // Create the first low-pass filter
-        lowPassFilter = audioContext.createBiquadFilter();
-        lowPassFilter.type = 'lowpass';
-        lowPassFilter.frequency.value = parseFloat(filterSlider.value) || 1000;
-        lowPassFilter.Q.value = 10; // Higher Q for a steeper slope
-    
-        // Create the second low-pass filter with the same settings
-        const secondLowPassFilter = audioContext.createBiquadFilter();
-        secondLowPassFilter.type = 'lowpass';
-        secondLowPassFilter.frequency.value = lowPassFilter.frequency.value; // Mirror the first filter's frequency
-        secondLowPassFilter.Q.value = lowPassFilter.Q.value; // Mirror the first filter's Q value
-    
-        // Create analyser node
-        analyserNode = audioContext.createAnalyser();
-        analyserNode.fftSize = 256;
-    
-        // Create ConvolverNode for reverb
-        const convolverNode = audioContext.createConvolver();
-    
-        // Create master gain node to control overall output volume
-        const masterGainNode = audioContext.createGain();
-        masterGainNode.gain.value = 0.8; // Set a safe default volume to avoid peaking
-    
-        // Optionally add a compressor for limiting peaks
-        const compressorNode = audioContext.createDynamicsCompressor();
-        compressorNode.threshold.value = -10; // Threshold for compression (adjust as needed)
-        compressorNode.knee.value = 10; // Smooth compression curve
-        compressorNode.ratio.value = 20; // Compression ratio
-        compressorNode.attack.value = 0.003; // Fast attack
-        compressorNode.release.value = 0.25; // Smooth release
-    
-        // Load impulse response for reverb
-        loadReverbIR('audio/ir.wav').then((irBuffer) => {
-            convolverNode.buffer = irBuffer;
-    
-            const sourceNode = sound._sounds[0]._node;
-    
-            // Connect the audio nodes
-            sourceNode.connect(lowPassFilter); // Connect to the first low-pass filter
-            lowPassFilter.connect(secondLowPassFilter); // Chain the second low-pass filter
-            secondLowPassFilter.connect(masterGainNode); // Route through master gain
-            secondLowPassFilter.connect(convolverNode).connect(masterGainNode); // Reverb through master gain
-    
-            // Apply compressor after master gain
-            masterGainNode.connect(compressorNode);
-            compressorNode.connect(audioContext.destination);
-    
-            // Also connect to analyser node for visualization
-            secondLowPassFilter.connect(analyserNode); // For visualization
-    
-            // Start visualization
-            visualizeAudio();
-        }).catch((error) => console.error('Error loading reverb IR:', error));
+    playPauseButton.addEventListener('click', function()
+    {
+        if (sound)
+        {
+            if (sound.playing())
+            {
+                sound.pause();
+                playPauseButton.textContent = 'Play';
+                stopProgressInterval();
+                cdImg.style.animation = "none";
+            }
+            else
+            {
+                sound.play();
+                playPauseButton.textContent = 'Pause';
+                startProgressInterval();
+                cdImg.style.animation = "rotate 2s linear infinite";``
+            }
+        }
+        else
+        {
+            alert('Please upload an audio file first.');
+        }
+    });
+
+    progressSlider.addEventListener('input', function()
+    {
+        if (sound)
+        {
+            sound.seek(progressSlider.value);
+        }
+    });
+
+    applyEditsButton.addEventListener('click', function()
+    {
+        if (sound)
+        {
+            var tempo = parseFloat(tempoSlider.value);
+            var playbackRate = mapTempoToPlaybackRate(tempo);
+            sound.rate(playbackRate);
+            console.log('Applied playback rate: ' + playbackRate);
+
+            updateBackgroundFilter(tempo);
+        }
+        else
+        {
+            alert('Please upload an audio file first.');
+        }
+    });
+
+    function updateBackgroundFilter(tempo)
+    {
+        var midpoint = sliderMiddle;
+        var brightness = 1;
+        var contrast = 1;
+
+        if (tempo <= midpoint)
+        {
+            brightness = 1 - (midpoint - tempo) * 0.1;
+            contrast = 1 - (midpoint - tempo) * 0.05;
+        }
+        else
+        {
+            brightness = 1 + (tempo - midpoint) * 0.1;
+            contrast = 1 + (tempo - midpoint) * 0.05;
+        }
+
+        if (brightness < 0.5)
+        {
+            brightness = 0.5;
+        }
+        if (brightness > 1.5)
+        {
+            brightness = 1.5;
+        }
+        if (contrast < 0.5)
+        {
+            contrast = 0.5;
+        }
+        if (contrast > 1.5)
+        {
+            contrast = 1.5;
+        }
+
+        document.body.style.setProperty('--brightness', brightness);
+        document.body.style.setProperty('--contrast', contrast);
+
+        console.log('Brightness: ' + brightness + ', Contrast: ' + contrast);
     }
-    
 
-    // Load Reverb File
-    async function loadReverbIR(url) {
-        const response = await fetch(url);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioContext = Howler.ctx;
-        return audioContext.decodeAudioData(arrayBuffer);
-    }
-    
-    // Update progress slider during playback
-    function startProgressInterval() {
-        if (progressInterval) clearInterval(progressInterval); // Clear any existing interval
+    function startProgressInterval()
+    {
+        if (progressInterval)
+        {
+            clearInterval(progressInterval);
+        }
 
-        // Set the max value of the slider to the duration of the audio
-        const duration = sound.duration();
-        progressSlider.max = duration;
+        if (sound)
+        {
+            var duration = sound.duration();
+            progressSlider.max = duration;
+        }
 
-        // Update the progress slider every 500ms based on the current time of the sound
-        progressInterval = setInterval(() => {
-            if (sound && sound.playing()) {
-                // Sync the slider value with the current position of the audio
+        progressInterval = setInterval(function()
+        {
+            if (sound && sound.playing())
+            {
                 progressSlider.value = sound.seek();
             }
         }, 500);
     }
 
-    // Stop updating progress when audio ends
-    function stopProgressInterval() {
-        if (progressInterval) {
-            clearInterval(progressInterval); // Stop the interval
+    function stopProgressInterval()
+    {
+        if (progressInterval)
+        {
+            clearInterval(progressInterval);
             progressInterval = null;
         }
     }
-    
-   
+
+    downloadImg.addEventListener('click', async function()
+    {
+        if (!selectedFile)
+        {
+            alert('Please upload a file before downloading.');
+            return;
+        }
+
+        try
+        {
+            var tempo = parseFloat(tempoSlider.value);
+            var playbackRate = mapTempoToPlaybackRate(tempo);
+
+            var processedBlob = await processAudioForDownload(fileURL, playbackRate);
+            var downloadFileName = 'edited_' + originalFileName;
+            downloadBlob(processedBlob, downloadFileName);
+        }
+        catch (error)
+        {
+            console.error('Error downloading file:', error);
+            alert('Failed to download the file. Please try again.');
+        }
+    });
+
+    async function processAudioForDownload(url, playbackRate)
+    {
+        var response = await fetch(url);
+        var arrayBuffer = await response.arrayBuffer();
+
+        var tempo = parseFloat(tempoSlider.value);
+        var playbackRateAdjusted = mapTempoToPlaybackRate(tempo);
+        var reverbMix = reverbMixSlider ? parseFloat(reverbMixSlider.value) : 0.5;
+        var filterFreq = filterSlider ? parseFloat(filterSlider.value) : 1000;
+
+        var audioContext = new AudioContext();
+        var audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        var offlineContext = new OfflineAudioContext(
+            audioBuffer.numberOfChannels,
+            audioBuffer.duration * audioBuffer.sampleRate / playbackRateAdjusted,
+            audioBuffer.sampleRate
+        );
+
+        var source = offlineContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.playbackRate.value = playbackRateAdjusted;
+
+        var irArrayBuffer = await (await fetch('audio/ir.wav')).arrayBuffer();
+        var irBuffer = await offlineContext.decodeAudioData(irArrayBuffer);
+
+        var offlineLowPass = offlineContext.createBiquadFilter();
+        offlineLowPass.type = 'lowpass';
+        offlineLowPass.frequency.value = filterFreq;
+
+        var offlineConvolver = offlineContext.createConvolver();
+        offlineConvolver.buffer = irBuffer;
+        offlineConvolver.normalize = true;
+
+        var offlineDryGain = offlineContext.createGain();
+        offlineDryGain.gain.value = 1 - reverbMix;
+
+        var offlineReverbGain = offlineContext.createGain();
+        offlineReverbGain.gain.value = reverbMix;
+
+        source.connect(offlineLowPass);
+        offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination);
+        offlineLowPass.connect(offlineConvolver);
+        offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination);
+
+        source.start();
+
+        var renderedBuffer = await offlineContext.startRendering();
+        return audioBufferToBlob(renderedBuffer);
+    }
+
+    function audioBufferToBlob(buffer)
+    {
+        var numOfChannels = buffer.numberOfChannels;
+        var length = buffer.length * numOfChannels * 2 + 44;
+        var wavBuffer = new ArrayBuffer(length);
+        var view = new DataView(wavBuffer);
+
+        function writeString(view, offset, string)
+        {
+            for (var i = 0; i < string.length; i++)
+            {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChannels, true);
+        view.setUint32(24, buffer.sampleRate, true);
+        view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
+        view.setUint16(32, numOfChannels * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, buffer.length * numOfChannels * 2, true);
+
+        var offset = 44;
+        for (var i = 0; i < buffer.length; i++)
+        {
+            for (var channel = 0; channel < numOfChannels; channel++)
+            {
+                var sample = buffer.getChannelData(channel)[i];
+                sample = Math.max(-1, Math.min(1, sample));
+                if (sample < 0)
+                {
+                    sample = sample * 32768;
+                }
+                else
+                {
+                    sample = sample * 32767;
+                }
+
+                view.setInt16(offset, sample, true);
+                offset += 2;
+            }
+        }
+
+        return new Blob([view], { type: 'audio/wav' });
+    }
+
+    function downloadBlob(blob, filename)
+    {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    filterSlider.addEventListener('input', function()
+    {
+        if (lowPassFilter)
+        {
+            var frequency = parseFloat(filterSlider.value);
+            lowPassFilter.frequency.value = frequency;
+            console.log('Low-pass filter frequency set to: ' + frequency + ' Hz');
+        }
+    });
 });
