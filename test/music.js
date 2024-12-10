@@ -226,138 +226,151 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function mapTempoToPlaybackRate(tempo) {
-        const minTempo = parseFloat(tempoSlider.min);
-        const maxTempo = parseFloat(tempoSlider.max);
-        const normalSpeed = sliderMiddle;
-
-        if (tempo === normalSpeed) {
-            return 1;
-        }
-        if (tempo > normalSpeed) {
-            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
-        }
-        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
-    }
-
-    playPauseButton.addEventListener('click', () => {
-        if (sound) {
-            if (sound.playing()) {
-                sound.pause();
-                playPauseButton.textContent = 'Play';
-                stopProgressInterval();
-                cdImg.style.animation = "none";
-            } else {
-                sound.play();
-                playPauseButton.textContent = 'Pause';
-                startProgressInterval();
-                cdImg.style.animation = "rotate 2s linear infinite";
-            }
-        } else {
-            alert('Please upload an audio file first.');
-        }
-    });
-
-    progressSlider.addEventListener('input', () => {
-        if (sound) {
-            sound.seek(progressSlider.value);
-        }
-    });
-
-    function mapTempoToPlaybackRate(tempo) {
-        const minTempo = parseFloat(tempoSlider.min);
-        const maxTempo = parseFloat(tempoSlider.max);
-        const normalSpeed = sliderMiddle;
-
-        if (tempo === normalSpeed) {
-            return 1;
-        }
-        if (tempo > normalSpeed) {
-            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
-        }
-        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
-    }
-
-    // Dynamically update playback speed
-    tempoSlider.addEventListener('input', () => {
-        if (sound) {
-            const tempo = parseFloat(tempoSlider.value);
-            const playbackRate = mapTempoToPlaybackRate(tempo);
-            sound.rate(playbackRate);
-            console.log(`Playback rate updated: ${playbackRate}`);
-            updateBackgroundFilter(tempo);
-        }
-    });
-
-    function updateBackgroundFilter(tempo) {
-        const midpoint = sliderMiddle;
-        let brightness, contrast;
+    function mapTempoToPlaybackRate(tempo) { // convert tempo slider value to playback rate
+        const minTempo = parseFloat(tempoSlider.min); // get the minimum tempo value
+        const maxTempo = parseFloat(tempoSlider.max); // get the maximum tempo value
+        const normalSpeed = sliderMiddle; // normal speed is the middle of the slider
     
-        if (tempo <= midpoint) {
-            brightness = 1 - (midpoint - tempo) * 0.1;
-            contrast = 1 - (midpoint - tempo) * 0.05;
-        } else {
-            brightness = 1 + (tempo - midpoint) * 0.1;
-            contrast = 1 + (tempo - midpoint) * 0.05;
+        if (tempo === normalSpeed) { // If tempo is at normal speed
+            return 1; // playback rate is 1x speed
+        }
+        if (tempo > normalSpeed) { // If tempo is >1
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed); // calculate playback rate proportionally
+        }   //otherwise tempo is < 1
+        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo); // calculate playback rate for  < 1
+    }
+    
+    playPauseButton.addEventListener('click', () => { // toggle play/pause on button click
+        if (sound) { // If a sound is loaded
+            if (sound.playing()) { // If the sound is currently playing:
+                sound.pause(); // pause the sound.
+                playPauseButton.textContent = 'Play'; // update button to say play
+                stopProgressInterval(); // stop updating the progress bar
+                cdImg.style.animation = "none"; // stop CD rotation animation
+            } else { // If the sound is not playing
+                sound.play(); // play the sound
+                playPauseButton.textContent = 'Pause'; // update button to say pause
+                startProgressInterval(); // start updating the progress bar
+                cdImg.style.animation = "rotate 2s linear infinite"; // start CD rotation animation
+            }
+        } else { // If no sound is loaded:
+            alert('Please upload an audio file first.'); // show an alert to upload the file
+        }
+    });
+    
+    progressSlider.addEventListener('input', () => { // update playback position when the progress slider is adjusted
+        if (sound) { // if a sound is loaded
+            sound.seek(progressSlider.value); // seek to the position
+        }
+    });
+    
+    function mapTempoToPlaybackRate(tempo) { // convert tempo slider value to playback rate
+        const minTempo = parseFloat(tempoSlider.min); // get the minimum tempo value
+        const maxTempo = parseFloat(tempoSlider.max); // get the maximum tempo value
+        const normalSpeed = sliderMiddle; // normal speed is the middle of the slider
+    
+        if (tempo === normalSpeed) { // If tempo is at normal speed
+            return 1; // playback rate is 1x speed
+        }
+        if (tempo > normalSpeed) { // If tempo is >1
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed); // calculate playback rate proportionally
+        }   //otherwise tempo is < 1
+        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo); // calculate playback rate for  < 1
+    }
+    
+    // Dynamically update playback speed
+    tempoSlider.addEventListener('input', () => { // update playback speed when tempo slider changes
+        if (sound) { // if a sound is loaded
+            const tempo = parseFloat(tempoSlider.value); // get the current speed value
+            const playbackRate = mapTempoToPlaybackRate(tempo); // map speed to playback rate
+            sound.rate(playbackRate); // update playback rate
+            console.log(`Playback rate updated: ${playbackRate}`); // log the new playback rate
+            updateBackgroundFilter(tempo); // update the background effect based on tempo
+        }
+    });
+    
+    function updateBackgroundFilter(tempo) { // Adjust background filter based on tempo.
+        const midpoint = sliderMiddle; // get the middle point of the slider
+        let brightness, contrast; //brightness and contrast variables
+    
+        if (tempo <= midpoint) { // for tempo below or equal to midpoint
+            brightness = 1 - (midpoint - tempo) * 0.1; // decrease brightness
+            contrast = 1 - (midpoint - tempo) * 0.05; // decrease contrast
+        } else { // For tempo above midpoint
+            brightness = 1 + (tempo - midpoint) * 0.1; // increase brightness
+            contrast = 1 + (tempo - midpoint) * 0.05; // increase contrast
         }
     
         // Clamp values to avoid invalid filter properties
-        brightness = Math.max(0.5, Math.min(1.5, brightness));
-        contrast = Math.max(0.5, Math.min(1.5, contrast));
+        brightness = Math.max(0.5, Math.min(1.5, brightness)); // limit brightness between 0.5 and 1.5
+        contrast = Math.max(0.5, Math.min(1.5, contrast)); // limit contrast between 0.5 and 1.5
     
         // Apply filter to the body pseudo-element
-        document.body.style.setProperty('--brightness', brightness);
-        document.body.style.setProperty('--contrast', contrast);
+        document.body.style.setProperty('--brightness', brightness); // update CSS variable for brightness
+        document.body.style.setProperty('--contrast', contrast); // update CSS variable for contrast
     
-        console.log(`Brightness: ${brightness}, Contrast: ${contrast}`);
+        console.log(`Brightness: ${brightness}, Contrast: ${contrast}`); // log the new filter values
     }
     
-    
-
+    //create new function to start progress
     function startProgressInterval() {
+        //if statement to check if there is a current interval
         if (progressInterval) clearInterval(progressInterval);
-
+        //create new variable to store how long a file is 
         const duration = sound.duration();
+        //set the progress slider's max duration to the new duration 
         progressSlider.max = duration;
-
+        // start a new interval to update the progress slider every 500 milliseconds
         progressInterval = setInterval(() => {
+            // check if the file exists and is currently playing
             if (sound && sound.playing()) {
+                // update the slider's current value to match the current playback position of the audio file
                 progressSlider.value = sound.seek();
             }
+            //repeat this every 0.5 seconds
         }, 500);
     }
-
+    //new function to stop the audio file
     function stopProgressInterval() {
+        // check if there is an valid file playing
         if (progressInterval) {
+            // if the audio file is currently playing, stop it
             clearInterval(progressInterval);
+            //set to null to indicate that it has stopped
             progressInterval = null;
         }
     }
-
+    //clcick handler to download the audio file
     downloadImg.addEventListener('click', async () => {
+        //check if the file is valid and has been uploaded
         if (!selectedFile) {
+            //notify user that they have not uploaded a file
             alert('Please upload a file before downloading.');
+            //return
             return;
         }
-
+        //handle errors
         try {
+            //create new variable to change the speed
             const tempo = parseFloat(tempoSlider.value);
+            //use helper function to map tempo value to
             const playbackRate = mapTempoToPlaybackRate(tempo);
 
             // Process the audio file with the applied tempo and effects
-            const processedBlob = await processAudioForDownload(fileURL, playbackRate);
-
+            const processedBlob = await processAudioForDownload(fileURL, playbackRate); // Process audio for download
+    
             // Generate a downloadable file
-            const downloadFileName = `edited_${originalFileName}`;
-            downloadBlob(processedBlob, downloadFileName);
-        } catch (error) {
-            console.error('Error downloading file:', error);
-            alert('Failed to download the file. Please try again.');
+            const downloadFileName = `edited_${originalFileName}`; // Create a new file name for download
+            downloadBlob(processedBlob, downloadFileName); // Trigger file download.
+        } catch (error) { // Handle errors
+            console.error('Error downloading file:', error); // Log the error.
+            alert('Failed to download the file. Please try again.'); // Show an alert.
         }
     });
-
-    async function processAudioForDownload(url, playbackRate) {
+    
+    async function processAudioForDownload(url, playbackRate) { // function to processaudio into download file
         // Fetch original file
+    
         const response = await fetch(url);
         const arrayBuffer = await response.arrayBuffer();
 
