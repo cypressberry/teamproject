@@ -1,57 +1,57 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const jsmediatags = window.jsmediatags; // Reference jsmediatags
+    const jsmediatags = window.jsmediatags; // Reference jsmediatags for reading media file tags
     const ID3Writer = window.ID3Writer; // Reference ID3Writer for editing tags
 
-    let sound = null;
-    let fileURL = null;
-    let progressInterval = null;
-    let originalFileName = '';
-    let selectedFile = null;
+    let sound = null; //Initialize sound object for howler
+    let fileURL = null; //Initialize fileURL for selected audio file
+    let progressInterval = null; //Initialize progressInterval for updating progress (for progress bar)
+    let originalFileName = ''; //Initialize uploaded file's name
+    let selectedFile = null; //Initialize the selectedFile reference
     let lowPassFilter = null; // Global reference to the low-pass filter
 
-    let convolverNode = null;
-    let reverbGainNode = null;
-    let dryGainNode = null;
+    let convolverNode = null; //Webaudio Api stuff, this is for reverb
+    let reverbGainNode = null; //This is for the reverb gain
+    let dryGainNode = null; //This is for the unedited signal gain
 
-    const fileInput = document.getElementById('fileInput');
-    const tempoSlider = document.getElementById('tempo');
-    const uploadImg = document.getElementById('upload_img');
-    const fileNameDisplay = document.getElementById('fileName');
-    const applyEditsButton = document.getElementById('applyEdits');
-    const downloadImg = document.getElementById('download_img');
-    const playPauseButton = document.getElementById('playPauseButton');
+    const fileInput = document.getElementById('fileInput'); //Populates file input
+    const tempoSlider = document.getElementById('tempo'); //Reference for controlling playback speed
+    const uploadImg = document.getElementById('upload_img'); //Reference to the upload button image
+    const fileNameDisplay = document.getElementById('fileName'); //Reference to the file name display
+    const applyEditsButton = document.getElementById('applyEdits'); //Reference to the apply edits button
+    const downloadImg = document.getElementById('download_img'); //Reference for the download button image
+    const playPauseButton = document.getElementById('playPauseButton'); //Reference to the play pause button
 
-    const cdImg = document.getElementById("cd_img");
-    const progressSlider = document.getElementById('progressSlider');
-    const body = document.body;
+    const cdImg = document.getElementById("cd_img"); //Reference to the rotating cd
+    const progressSlider = document.getElementById('progressSlider'); //Reference to the progress slider
+    const body = document.body; //Reference to the HTML body element
     const filterSlider = document.getElementById('filterSlider'); // Slider for controlling filter frequency
 
     // Set up the canvas and get the context for drawing
-    const canvas = document.getElementById('visualizerCanvas');
-    const canvasContext = canvas.getContext('2d');
+    const canvas = document.getElementById('visualizerCanvas'); //This got removed because it broke everything
+    const canvasContext = canvas.getContext('2d'); //Reference for the 2d rendering context for the canvas
     let analyserNode = null;  // Global reference to the analyser node
 
 
     // Reverb mix slider
-    const reverbMixSlider = document.getElementById('reverbMixSlider');
+    const reverbMixSlider = document.getElementById('reverbMixSlider'); //Reference to the slider for controlling the reverb mix level
 
     const lowPassMiddle = (parseFloat(filterSlider.min) + parseFloat(filterSlider.max)) / 2; // Middle for filterSlider
     const reverbMiddle = (parseFloat(reverbMixSlider.min) + parseFloat(reverbMixSlider.max)) / 2; // Middle for reverbMixSlider
 
 
     const sliderMiddle = 1.5; // Middle value of the slider corresponds to normal speed
-    tempoSlider.value = sliderMiddle;
-    progressSlider.value = 0;
+    tempoSlider.value = sliderMiddle; // Set the initial value of the tempo slider to the middle (normal speed)
+    progressSlider.value = 0; // Initialize slider position to zero
 
-    filterSlider.value = lowPassMiddle;
-    reverbMixSlider.value = reverbMiddle;
+    filterSlider.value = lowPassMiddle; //Filter slider intial position
+    reverbMixSlider.value = reverbMiddle; //Reverb slider initial position
 
-    uploadImg.addEventListener('click', () => fileInput.click());
+    uploadImg.addEventListener('click', () => fileInput.click()); // Event listener for clicking the upload image to trigger the file input
 
-    fileInput.addEventListener('change', async (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            selectedFile = file;
+    fileInput.addEventListener('change', async (event) => { // Event listener for when a file is selected from the file input
+        const file = event.target.files[0]; //Get first selected file
+        if (file) { //if file exists
+            selectedFile = file; //
             fileURL = URL.createObjectURL(file);
             originalFileName = file.name;
 
