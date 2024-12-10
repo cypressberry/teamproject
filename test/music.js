@@ -106,18 +106,19 @@ document.addEventListener('DOMContentLoaded', () => {
         reverbGainNode = audioContext.createGain(); //Create the full gain node (max gain)
         reverbGainNode.gain.value = 0; // Start no reverb (fully dry)
     }
-    function setupVisualizer() {    //We didn't end up keeping this, it broke everything, not enough time to remove it without breaking stuff either
-        // Create another AudioContext
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();  //Same check for existence of audiocontext and fallback
+    function setupVisualizer() {
+        // Create an AudioContext (if not already created)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         // Create an analyser node
-        analyserNode = audioContext.createAnalyser();  //Initialize analyzer node frm webaudio api
+        analyserNode = audioContext.createAnalyser();
         analyserNode.fftSize = 256;  // Sets the number of frequency bins (controls the resolution)
     
         // Connect the Howler sound node to the analyser
         const soundNode = sound._sounds[0]._node;
         soundNode.connect(analyserNode);
         analyserNode.connect(audioContext.destination);
+    
     
         // Create an array to hold the frequency data
         const bufferLength = analyserNode.frequencyBinCount;
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Clear the canvas for the next frame
             canvasContext.clearRect(0, 0, canvas.width, canvas.height);
     
-            const barWidth = (canvas.width / bufferLength) * 2.5; 
+            const barWidth = (canvas.width / bufferLength) * 2.5;
             let barHeight;
             let x = 0;
     
@@ -154,24 +155,24 @@ document.addEventListener('DOMContentLoaded', () => {
     
 
     function loadAndPlayAudio(url, fileName) {
-        const fileExtension = fileName.split('.').pop().toLowerCase();
-        const supportedFormats = ['mp3', 'ogg', 'wav'];
+        const fileExtension = fileName.split('.').pop().toLowerCase(); // getting file ext
+        const supportedFormats = ['mp3', 'ogg', 'wav']; // supported file types
 
-        if (!supportedFormats.includes(fileExtension)) {
+        if (!supportedFormats.includes(fileExtension)) { // error case if unsupported
             alert('Unsupported file format. Please upload an MP3, OGG, or WAV file.');
             return;
         }
 
-        if (sound) {
+        if (sound) { // if sound is playing stop it and the interval
             sound.stop();
             clearInterval(progressInterval);
         }
 
-        sound = new Howl({
-            src: [url],
-            format: [fileExtension],
+        sound = new Howl({ // create new sound
+            src: [url], // setting source to the url
+            format: [fileExtension], // setting format to file extension
             onload: async () => {
-                const audioContext = Howler.ctx;
+                const audioContext = Howler.ctx; // set context to Howler context
 
                 // Create and connect the low-pass filter
                 lowPassFilter = createLowPassFilter(audioContext);
@@ -181,135 +182,136 @@ document.addEventListener('DOMContentLoaded', () => {
                 sourceNode.disconnect();
 
                 // Create and load the reverb IR
-                const irBuffer = await loadReverbIR('audio/ir.wav'); // Adjust path if needed
-                convolverNode = audioContext.createConvolver();
-                convolverNode.buffer = irBuffer;
-                convolverNode.normalize = true;
+                const irBuffer = await loadReverbIR('audio/ir.wav'); // setting path
+                convolverNode = audioContext.createConvolver(); // create convoler node
+                convolverNode.buffer = irBuffer; // set the buffer to IR buffer
+                convolverNode.normalize = true; // normalize set to true
 
                 // Create gain nodes for wet/dry mix
-                dryGainNode = audioContext.createGain();
+                dryGainNode = audioContext.createGain(); // create gain node
                 dryGainNode.gain.value = 0.5;   // 50% dry
-                reverbGainNode = audioContext.createGain();
+                reverbGainNode = audioContext.createGain(); // create reverb gain node
                 reverbGainNode.gain.value = 0.5; // 50% wet
 
                 // Connect the chain:
                 // Source -> LowPassFilter -> (Dry path) DryGainNode -> Destination
                 //                        \-> (Wet path) Convolver -> ReverbGainNode -> Destination
-                sourceNode.connect(lowPassFilter);
+                sourceNode.connect(lowPassFilter); // Connect the source node to the low-pass filter
 
-                lowPassFilter.connect(dryGainNode).connect(audioContext.destination);
-                lowPassFilter.connect(convolverNode);
-                convolverNode.connect(reverbGainNode).connect(audioContext.destination);
+                lowPassFilter.connect(dryGainNode).connect(audioContext.destination); // connect low pass filter to dry gain node and connect to audio context's destination
+                lowPassFilter.connect(convolverNode); // connect low pass filter to convolver node
+                convolverNode.connect(reverbGainNode).connect(audioContext.destination); // connect convoler node to reverb gain node and connect it to audio context's destination
 
                 // Add event listener for the reverb slider now that nodes are created
-                if (reverbMixSlider) {
-                    reverbMixSlider.addEventListener('input', () => {
-                        const mix = parseFloat(reverbMixSlider.value);
-                        dryGainNode.gain.value = 1 - mix;
-                        reverbGainNode.gain.value = mix;
-                        console.log(`Reverb mix set to: ${mix}`);
+                if (reverbMixSlider) { // if reverb mix slider exists
+                    reverbMixSlider.addEventListener('input', () => { // listen for input
+                        const mix = parseFloat(reverbMixSlider.value); // const mix is the value of the slider
+                        dryGainNode.gain.value = 1 - mix; // dry gain node's value is calculated
+                        reverbGainNode.gain.value = mix; // the reverb gain node's value is set to mix
+                        console.log(`Reverb mix set to: ${mix}`); // console msg
                     });
                 }
 
-                setupVisualizer();
+                setupVisualizer(); // set up the visualizer
                 
-                playPauseButton.textContent = 'Pause';
-                sound.play();
-                startProgressInterval();
-                cdImg.style.animation = "rotate 2s linear infinite";
+                playPauseButton.textContent = 'Pause'; // button shows Pause
+                sound.play(); // play sound
+                startProgressInterval(); // start interval
+                cdImg.style.animation = "rotate 2s linear infinite"; // rotate disc animation starts
             },
             onend: () => {
-                playPauseButton.textContent = 'Play';
-                stopProgressInterval();
-                cdImg.style.animation = "none";
+                playPauseButton.textContent = 'Play'; // button shows play
+                stopProgressInterval(); // stop interval
+                cdImg.style.animation = "none"; // stop animation
             }
         });
     }
 
-    function mapTempoToPlaybackRate(tempo) { // convert tempo slider value to playback rate
-        const minTempo = parseFloat(tempoSlider.min); // get the minimum tempo value
-        const maxTempo = parseFloat(tempoSlider.max); // get the maximum tempo value
-        const normalSpeed = sliderMiddle; // normal speed is the middle of the slider
-    
-        if (tempo === normalSpeed) { // If tempo is at normal speed
-            return 1; // playback rate is 1x speed
+    function mapTempoToPlaybackRate(tempo) {
+        const minTempo = parseFloat(tempoSlider.min); // getting min tempo
+        const maxTempo = parseFloat(tempoSlider.max); // getting max tempo
+        const normalSpeed = sliderMiddle; // setting normal speed to slidermiddle
+
+        if (tempo === normalSpeed) { // if tempo is normal speed, return 1
+            return 1;
         }
-        if (tempo > normalSpeed) { // If tempo is >1
-            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed); // calculate playback rate proportionally
-        }   //otherwise tempo is < 1
-        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo); // calculate playback rate for  < 1
+        if (tempo > normalSpeed) { // if tempo is greater than normal speed, normalize playback speed with maxtempo
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        }
+        // if tempo is less than normal speed, normalize playback speed with mintempo
+        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
     }
-    
-    playPauseButton.addEventListener('click', () => { // toggle play/pause on button click
-        if (sound) { // If a sound is loaded
-            if (sound.playing()) { // If the sound is currently playing:
-                sound.pause(); // pause the sound.
-                playPauseButton.textContent = 'Play'; // update button to say play
-                stopProgressInterval(); // stop updating the progress bar
-                cdImg.style.animation = "none"; // stop CD rotation animation
-            } else { // If the sound is not playing
-                sound.play(); // play the sound
-                playPauseButton.textContent = 'Pause'; // update button to say pause
-                startProgressInterval(); // start updating the progress bar
-                cdImg.style.animation = "rotate 2s linear infinite"; // start CD rotation animation
+
+    playPauseButton.addEventListener('click', () => {
+        if (sound) {
+            if (sound.playing()) {
+                sound.pause();
+                playPauseButton.textContent = 'Play';
+                stopProgressInterval();
+                cdImg.style.animation = "none";
+            } else {
+                sound.play();
+                playPauseButton.textContent = 'Pause';
+                startProgressInterval();
+                cdImg.style.animation = "rotate 2s linear infinite";
             }
-        } else { // If no sound is loaded:
-            alert('Please upload an audio file first.'); // show an alert to upload the file
+        } else {
+            alert('Please upload an audio file first.');
         }
     });
-    
-    progressSlider.addEventListener('input', () => { // update playback position when the progress slider is adjusted
-        if (sound) { // if a sound is loaded
-            sound.seek(progressSlider.value); // seek to the position
+
+    progressSlider.addEventListener('input', () => {
+        if (sound) {
+            sound.seek(progressSlider.value);
         }
     });
-    
-    function mapTempoToPlaybackRate(tempo) { // convert tempo slider value to playback rate
-        const minTempo = parseFloat(tempoSlider.min); // get the minimum tempo value
-        const maxTempo = parseFloat(tempoSlider.max); // get the maximum tempo value
-        const normalSpeed = sliderMiddle; // normal speed is the middle of the slider
-    
-        if (tempo === normalSpeed) { // If tempo is at normal speed
-            return 1; // playback rate is 1x speed
+
+    function mapTempoToPlaybackRate(tempo) {
+        const minTempo = parseFloat(tempoSlider.min);
+        const maxTempo = parseFloat(tempoSlider.max);
+        const normalSpeed = sliderMiddle;
+
+        if (tempo === normalSpeed) {
+            return 1;
         }
-        if (tempo > normalSpeed) { // If tempo is >1
-            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed); // calculate playback rate proportionally
-        }   //otherwise tempo is < 1
-        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo); // calculate playback rate for  < 1
+        if (tempo > normalSpeed) {
+            return 1 + (tempo - normalSpeed) / (maxTempo - normalSpeed);
+        }
+        return 1 - (normalSpeed - tempo) / (normalSpeed - minTempo);
     }
-    
+
     // Dynamically update playback speed
-    tempoSlider.addEventListener('input', () => { // update playback speed when tempo slider changes
-        if (sound) { // if a sound is loaded
-            const tempo = parseFloat(tempoSlider.value); // get the current speed value
-            const playbackRate = mapTempoToPlaybackRate(tempo); // map speed to playback rate
-            sound.rate(playbackRate); // update playback rate
-            console.log(`Playback rate updated: ${playbackRate}`); // log the new playback rate
-            updateBackgroundFilter(tempo); // update the background effect based on tempo
+    tempoSlider.addEventListener('input', () => {
+        if (sound) {
+            const tempo = parseFloat(tempoSlider.value);
+            const playbackRate = mapTempoToPlaybackRate(tempo);
+            sound.rate(playbackRate);
+            console.log(`Playback rate updated: ${playbackRate}`);
+            updateBackgroundFilter(tempo);
         }
     });
+
+    function updateBackgroundFilter(tempo) {
+        const midpoint = sliderMiddle;
+        let brightness, contrast;
     
-    function updateBackgroundFilter(tempo) { // Adjust background filter based on tempo.
-        const midpoint = sliderMiddle; // get the middle point of the slider
-        let brightness, contrast; //brightness and contrast variables
-    
-        if (tempo <= midpoint) { // for tempo below or equal to midpoint
-            brightness = 1 - (midpoint - tempo) * 0.1; // decrease brightness
-            contrast = 1 - (midpoint - tempo) * 0.05; // decrease contrast
-        } else { // For tempo above midpoint
-            brightness = 1 + (tempo - midpoint) * 0.1; // increase brightness
-            contrast = 1 + (tempo - midpoint) * 0.05; // increase contrast
+        if (tempo <= midpoint) {
+            brightness = 1 - (midpoint - tempo) * 0.1;
+            contrast = 1 - (midpoint - tempo) * 0.05;
+        } else {
+            brightness = 1 + (tempo - midpoint) * 0.1;
+            contrast = 1 + (tempo - midpoint) * 0.05;
         }
     
         // Clamp values to avoid invalid filter properties
-        brightness = Math.max(0.5, Math.min(1.5, brightness)); // limit brightness between 0.5 and 1.5
-        contrast = Math.max(0.5, Math.min(1.5, contrast)); // limit contrast between 0.5 and 1.5
+        brightness = Math.max(0.5, Math.min(1.5, brightness));
+        contrast = Math.max(0.5, Math.min(1.5, contrast));
     
         // Apply filter to the body pseudo-element
-        document.body.style.setProperty('--brightness', brightness); // update CSS variable for brightness
-        document.body.style.setProperty('--contrast', contrast); // update CSS variable for contrast
+        document.body.style.setProperty('--brightness', brightness);
+        document.body.style.setProperty('--contrast', contrast);
     
-        console.log(`Brightness: ${brightness}, Contrast: ${contrast}`); // log the new filter values
+        console.log(`Brightness: ${brightness}, Contrast: ${contrast}`);
     }
     
     //create new function to start progress
@@ -340,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressInterval = null;
         }
     }
-    //click handler to download the audio file
+    //clcick handler to download the audio file
     downloadImg.addEventListener('click', async () => {
         //check if the file is valid and has been uploaded
         if (!selectedFile) {
@@ -353,163 +355,140 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             //create new variable to change the speed
             const tempo = parseFloat(tempoSlider.value);
-            //use helper function to map tempo value to playback rate
+            //use helper function to map tempo value to
             const playbackRate = mapTempoToPlaybackRate(tempo);
 
-            // process the audio file with the applied tempo and effects
+            // Process the audio file with the applied tempo and effects
             const processedBlob = await processAudioForDownload(fileURL, playbackRate);
 
-            // create new variable to store file name of audio file
+            // Generate a downloadable file
             const downloadFileName = `edited_${originalFileName}`;
-            //trigger download of the processed audio Blob using a helper function
             downloadBlob(processedBlob, downloadFileName);
         } catch (error) {
-            //log the error to the console for debugging purposes
             console.error('Error downloading file:', error);
-            //alert user that the downloadd did not work
             alert('Failed to download the file. Please try again.');
         }
     });
-    //new asynchronous function to process audio for downloading
+
     async function processAudioForDownload(url, playbackRate) {
-        // get original audio file from url
+        // Fetch original file
         const response = await fetch(url);
-        //create arraybuffer to retrieve audio data
         const arrayBuffer = await response.arrayBuffer();
 
-        // get current slider value for tempo and calculate playback rate from that slider value
+        // Get current slider values
         const tempo = parseFloat(tempoSlider.value);
-        //map tempo to playback rate using helper function
         const playbackRateAdjusted = mapTempoToPlaybackRate(tempo);
-        // get reverb mix and filter frequency values from sliders or set default values
-        //get reverb mix or default to 0.5
+
         const reverbMix = reverbMixSlider ? parseFloat(reverbMixSlider.value) : 0.5;
-        //get filter frequency or default to 1000 Hz
         const filterFreq = filterSlider ? parseFloat(filterSlider.value) : 1000;
 
-        // create an AudioContext for audio processing
         const audioContext = new AudioContext();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-        // create an offlineContext variable for offline rendering of the audio
+        // Create an OfflineAudioContext to render the processed audio
         const offlineContext = new OfflineAudioContext(
-            //number of audio channels
             audioBuffer.numberOfChannels,
-            //adjust the duration based on playback rate
             audioBuffer.duration * audioBuffer.sampleRate / playbackRateAdjusted,
-            //original sample rate of the audio
             audioBuffer.sampleRate
         );
 
-        // set up the audio source for the offline context
+        // Set up the source
         const source = offlineContext.createBufferSource();
-        //create a buffer source node
         source.buffer = audioBuffer;
-        //assign the decoded audio buffer to the source
         source.playbackRate.value = playbackRateAdjusted;
 
-        // fetch and decode the impulse response (IR) file for reverb
+        // Load IR again for offline rendering
         const irArrayBuffer = await (await fetch('audio/ir.wav')).arrayBuffer();
-        //decode the IR file into an AudioBuffer
         const irBuffer = await offlineContext.decodeAudioData(irArrayBuffer);
 
-        // create a low-pass filter node for the offline context
-        //create a biquad filter for low-pass filtering
+        // Create nodes in the offline context
         const offlineLowPass = offlineContext.createBiquadFilter();
-        //set the filter type to low-pass
         offlineLowPass.type = 'lowpass';
-        // Set the cutoff frequency based on the slider value
         offlineLowPass.frequency.value = filterFreq;
-        // Create a convolver node for reverb
-        const offlineConvolver = offlineContext.createConvolver(); // Create a convolver node
-    offlineConvolver.buffer = irBuffer; // Assign the impulse response buffer to the convolver
-    offlineConvolver.normalize = true; // Enable normalization for the IR
 
-    // Create gain nodes for dry and wet signals
-    const offlineDryGain = offlineContext.createGain(); // Create a gain node for the dry signal
-    offlineDryGain.gain.value = 1 - reverbMix; // Set the gain based on the reverb mix
+        const offlineConvolver = offlineContext.createConvolver();
+        offlineConvolver.buffer = irBuffer;
+        offlineConvolver.normalize = true;
 
-    const offlineReverbGain = offlineContext.createGain(); // Create a gain node for the wet signal
-    offlineReverbGain.gain.value = reverbMix; // Set the gain based on the reverb mix
+        const offlineDryGain = offlineContext.createGain();
+        offlineDryGain.gain.value = 1 - reverbMix;
 
-    // Connect nodes: source -> lowPass -> dryGain + (convolver -> reverbGain)
-    source.connect(offlineLowPass); // Connect the source to the low-pass filter
-    offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination); // Connect low-pass -> dryGain -> destination
+        const offlineReverbGain = offlineContext.createGain();
+        offlineReverbGain.gain.value = reverbMix;
 
-    offlineLowPass.connect(offlineConvolver); // Connect low-pass to the convolver
-    offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination); // Convolver -> reverbGain -> destination
+        // Connect nodes: source -> lowPass -> dryGain + (convolver->reverbGain)
+        source.connect(offlineLowPass);
+        offlineLowPass.connect(offlineDryGain).connect(offlineContext.destination);
 
-    source.start(); // Start the source node to render audio
+        offlineLowPass.connect(offlineConvolver);
+        offlineConvolver.connect(offlineReverbGain).connect(offlineContext.destination);
 
-    // Render the processed audio buffer using the offline context
-    const renderedBuffer = await offlineContext.startRendering(); // Begin the rendering process
-    return audioBufferToBlob(renderedBuffer); // Convert the rendered buffer to a Blob and return it
-}
+        source.start();
 
-// Helper function to convert an AudioBuffer to a Blob
-function audioBufferToBlob(buffer) {
-    const numOfChannels = buffer.numberOfChannels; // Get the number of audio channels
-    const length = buffer.length * numOfChannels * 2 + 44; // Calculate the total WAV file size (PCM data + header)
-    const wavBuffer = new ArrayBuffer(length); // Create a buffer for the WAV file
-    const view = new DataView(wavBuffer); // Create a DataView to manipulate the buffer
+        const renderedBuffer = await offlineContext.startRendering();
+        return audioBufferToBlob(renderedBuffer);
+    }
 
-    // Function to write strings into the DataView
-    function writeString(view, offset, string) {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i)); // Write each character as an 8-bit unsigned integer
+    function audioBufferToBlob(buffer) {
+        const numOfChannels = buffer.numberOfChannels;
+        const length = buffer.length * numOfChannels * 2 + 44;
+        const wavBuffer = new ArrayBuffer(length);
+        const view = new DataView(wavBuffer);
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
         }
-    }
 
-    // Write WAV header
-    writeString(view, 0, 'RIFF'); // RIFF chunk descriptor
-    view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true); // File size
-    writeString(view, 8, 'WAVE'); // WAVE file format
-    writeString(view, 12, 'fmt '); // Format chunk
-    view.setUint32(16, 16, true); // Subchunk size
-    view.setUint16(20, 1, true); // Audio format (1 for PCM)
-    view.setUint16(22, numOfChannels, true); // Number of channels
-    view.setUint32(24, buffer.sampleRate, true); // Sample rate
-    view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true); // Byte rate
-    view.setUint16(32, numOfChannels * 2, true); // Block align
-    view.setUint16(34, 16, true); // Bits per sample
-    writeString(view, 36, 'data'); // Data chunk
-    view.setUint32(40, buffer.length * numOfChannels * 2, true); // Data size
+        // Write WAV header
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChannels, true);
+        view.setUint32(24, buffer.sampleRate, true);
+        view.setUint32(28, buffer.sampleRate * numOfChannels * 2, true);
+        view.setUint16(32, numOfChannels * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, buffer.length * numOfChannels * 2, true);
 
-    // Write interleaved PCM data
-    let offset = 44; // Start after the header
-    for (let i = 0; i < buffer.length; i++) {
-        for (let channel = 0; channel < numOfChannels; channel++) {
-            let sample = buffer.getChannelData(channel)[i]; // Get the sample for the channel
-            sample = Math.max(-1, Math.min(1, sample)); // Clamp the sample value to [-1, 1]
-            sample = sample < 0 ? sample * 32768 : sample * 32767; // Scale to 16-bit range
-            view.setInt16(offset, sample, true); // Write the sample as a 16-bit integer
-            offset += 2; // Move to the next sample position
+        // Write interleaved PCM data
+        let offset = 44;
+        for (let i = 0; i < buffer.length; i++) {
+            for (let channel = 0; channel < numOfChannels; channel++) {
+                let sample = buffer.getChannelData(channel)[i];
+                sample = Math.max(-1, Math.min(1, sample));
+                sample = sample < 0 ? sample * 32768 : sample * 32767;
+                view.setInt16(offset, sample, true);
+                offset += 2;
+            }
         }
+
+        return new Blob([view], { type: 'audio/wav' });
     }
 
-    return new Blob([view], { type: 'audio/wav' }); // Create and return a Blob for the WAV file
-}
-
-// Helper function to download a Blob as a file
-function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob); // Create a temporary URL for the Blob
-    const a = document.createElement('a'); // Create a hidden anchor element
-    a.style.display = 'none'; // Hide the anchor element
-    a.href = url; // Set the href to the Blob's URL
-    a.download = filename; // Set the download filename
-    document.body.appendChild(a); // Append the anchor to the document
-    a.click(); // Simulate a click to trigger the download
-    document.body.removeChild(a); // Remove the anchor after the click
-    URL.revokeObjectURL(url); // Revoke the Blob URL to free resources
-}
-
-// Listen for slider changes to adjust the filter frequency in real time
-filterSlider.addEventListener('input', () => {
-    if (lowPassFilter) { // Check if the low-pass filter exists
-        const frequency = parseFloat(filterSlider.value); // Get the slider value as a number
-        lowPassFilter.frequency.value = frequency; // Update the filter's cutoff frequency
-        console.log('Low-pass filter frequency set to: ' + frequency + ' Hz'); // Log the new frequency
+    function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
-});
-});
 
+    // Listen for changes on the filter slider to adjust the cutoff frequency live
+    filterSlider.addEventListener('input', () => {
+        if (lowPassFilter) {
+            const frequency = parseFloat(filterSlider.value);
+            lowPassFilter.frequency.value = frequency;
+            console.log('Low-pass filter frequency set to: ' + frequency + ' Hz');
+        }
+    });
+});
