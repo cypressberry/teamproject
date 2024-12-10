@@ -232,12 +232,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupAudioEffects() {
         const audioContext = Howler.ctx;
     
-        // Create low-pass filter
+        // Create the first low-pass filter
         lowPassFilter = audioContext.createBiquadFilter();
         lowPassFilter.type = 'lowpass';
         lowPassFilter.frequency.value = parseFloat(filterSlider.value) || 1000;
         lowPassFilter.Q.value = 10; // Higher Q for a steeper slope
-
+    
+        // Create the second low-pass filter with the same settings
+        const secondLowPassFilter = audioContext.createBiquadFilter();
+        secondLowPassFilter.type = 'lowpass';
+        secondLowPassFilter.frequency.value = lowPassFilter.frequency.value; // Mirror the first filter's frequency
+        secondLowPassFilter.Q.value = lowPassFilter.Q.value; // Mirror the first filter's Q value
     
         // Create analyser node
         analyserNode = audioContext.createAnalyser();
@@ -245,13 +250,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
         // Create ConvolverNode for reverb
         const convolverNode = audioContext.createConvolver();
-    
-        // Create dry and wet gain nodes
-        dryGainNode = audioContext.createGain();
-        dryGainNode.gain.value = 1.0; // Full dry signal by default
-    
-        wetGainNode = audioContext.createGain();
-        wetGainNode.gain.value = parseFloat(volumeSlider.value) || 0.5; // Set initial wet signal gain based on slider
     
         // Create master gain node to control overall output volume
         const masterGainNode = audioContext.createGain();
@@ -272,22 +270,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const sourceNode = sound._sounds[0]._node;
     
             // Connect the audio nodes
-            sourceNode.connect(lowPassFilter);
-            lowPassFilter.connect(dryGainNode).connect(masterGainNode);  // Dry signal through master gain
-            lowPassFilter.connect(convolverNode).connect(wetGainNode).connect(masterGainNode); // Wet signal through master gain
+            sourceNode.connect(lowPassFilter); // Connect to the first low-pass filter
+            lowPassFilter.connect(secondLowPassFilter); // Chain the second low-pass filter
+            secondLowPassFilter.connect(masterGainNode); // Route through master gain
+            secondLowPassFilter.connect(convolverNode).connect(masterGainNode); // Reverb through master gain
     
             // Apply compressor after master gain
             masterGainNode.connect(compressorNode);
             compressorNode.connect(audioContext.destination);
     
             // Also connect to analyser node for visualization
-            lowPassFilter.connect(analyserNode); // For visualization
+            secondLowPassFilter.connect(analyserNode); // For visualization
     
             // Start visualization
             visualizeAudio();
         }).catch((error) => console.error('Error loading reverb IR:', error));
     }
     
+
     // Load Reverb File
     async function loadReverbIR(url) {
         const response = await fetch(url);
