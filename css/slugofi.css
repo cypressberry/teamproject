@@ -381,3 +381,73 @@ canvas{
     transform: scale(1.3); /* Enlarge the thumb more on hover */
     box-shadow: 0 0 60px rgba(223, 17, 158, 1), 0 0 120px rgba(223, 17, 158, 0.9), 0 0 180px rgba(223, 17, 158, 0.7); /* Even stronger glow on hover */
 }
+/* Shared styles for sliders */
+input[type="range"] {
+    -webkit-appearance: none; /* Remove default appearance for WebKit browsers */
+    -moz-appearance: none; /* Remove default appearance for Firefox */
+    appearance: none;
+    background: #DF119E; /* Change track color */
+    height: 8px; /* Adjust the track height */
+    border-radius: 5px; /* Rounded corners for track */
+    outline: none; /* Remove the outline on focus */
+    transition: background 0.3s ease; /* Smooth background change */
+    width: 20%; /* Adjust slider width */
+    margin: 20px auto; /* Center sliders and add spacing */
+}
+
+/* Thumb design for WebKit browsers */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; /* Thumb width */
+    height: 20px; /* Thumb height */
+    background: #DF119E; /* Thumb color */
+    border-radius: 50%; /* Circular thumb */
+    border: 3px solid #FFF; /* White border for contrast */
+    box-shadow: 
+        0 0 10px rgba(223, 17, 158, 2.8), /* Inner glow */
+        0 0 20px rgba(223, 17, 158, 2.6), /* Medium glow */
+        0 0 30px rgba(223, 17, 158, 2.4); /* Outer glow */
+    transition: transform 0.2s ease, box-shadow 0.3s ease; 
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3); 
+    box-shadow: 
+        0 0 60px rgba(223, 17, 158, 1), 
+        0 0 120px rgba(223, 17, 158, 0.9), 
+        0 0 180px rgba(223, 17, 158, 0.7); 
+}
+
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px; 
+    height: 20px; 
+    background: #DF119E; 
+    border-radius: 50%; 
+    border: 3px solid #FFF; 
+    box-shadow: 
+        0 0 10px rgba(223, 17, 158, 2.8), 
+        0 0 20px rgba(223, 17, 158, 2.6), 
+        0 0 30px rgba(223, 17, 158, 2.4); 
+    transition: transform 0.2s ease, box-shadow 0.3s ease; 
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.3); 
+    box-shadow: 
+        0 0 60px rgba(223, 17, 158, 1), 
+        0 0 120px rgba(223, 17, 158, 0.9), 
+        0 0 180px rgba(223, 17, 158, 0.7); 
+}
+
+/* Specific styling for labels */
+label {
+    font-family: "Pixelify Sans", sans-serif;
+    font-size: 18px;
+    color: white;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-align: center;
+    display: block; 
+}
